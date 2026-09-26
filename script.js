@@ -1,78 +1,140 @@
-alert("SCRIPT NUEVO CARGADO");
 document.addEventListener("DOMContentLoaded", function () {
 
     /* =========================================================
        DATOS
     ========================================================= */
 
-    var estudiantes = cargarJSON("estudiantes");
-    var atenciones = cargarJSON("atenciones");
-    var notas = cargarJSON("notasConversacion");
+    let estudiantes = cargar("estudiantes");
+    let atenciones = cargar("atenciones");
 
-    var filtroSeguimientos = "todos";
+    let filtroSeguimientos = "todos";
 
-    window.estudiantes = estudiantes;
-    window.atenciones = atenciones;
 
     /* =========================================================
        INICIO
     ========================================================= */
 
-    iniciarNavegacion();
-    iniciarBotones();
-    iniciarModales();
-    iniciarFormularios();
-    iniciarBusqueda();
+    iniciar();
 
-    actualizarTodo();
-    actualizarFecha();
+    function iniciar() {
+
+        configurarNavegacion();
+        configurarBotones();
+        configurarModales();
+        configurarFormularios();
+        configurarBusqueda();
+        configurarSeguimientos();
+
+        actualizarTodo();
+        actualizarFecha();
+
+    }
+
+
+    /* =========================================================
+       LOCAL STORAGE
+    ========================================================= */
+
+    function cargar(nombre) {
+
+        try {
+
+            const datos = localStorage.getItem(nombre);
+
+            if (!datos) {
+                return [];
+            }
+
+            const resultado = JSON.parse(datos);
+
+            return Array.isArray(resultado) ? resultado : [];
+
+        } catch (error) {
+
+            console.error("Error cargando " + nombre, error);
+
+            return [];
+
+        }
+
+    }
+
+
+    function guardarDatos() {
+
+        localStorage.setItem(
+            "estudiantes",
+            JSON.stringify(estudiantes)
+        );
+
+        localStorage.setItem(
+            "atenciones",
+            JSON.stringify(atenciones)
+        );
+
+    }
 
 
     /* =========================================================
        NAVEGACIÓN
     ========================================================= */
 
-    function iniciarNavegacion() {
+    function configurarNavegacion() {
 
-        document.querySelectorAll(".nav-item").forEach(function (boton) {
+        document.addEventListener("click", function (evento) {
 
-            boton.addEventListener("click", function () {
+            const boton = evento.target.closest(".nav-item");
 
-                var seccion = boton.getAttribute("data-section");
+            if (!boton) {
+                return;
+            }
 
-                if (seccion) {
-                    mostrarSeccion(seccion);
-                }
+            evento.preventDefault();
+            evento.stopPropagation();
 
-            });
+            const seccion = boton.getAttribute("data-section");
+
+            if (seccion) {
+                mostrarSeccion(seccion);
+            }
 
         });
 
     }
 
 
-    window.mostrarSeccion = function (id) {
+    function mostrarSeccion(id) {
 
         document.querySelectorAll(".section").forEach(function (seccion) {
+
             seccion.classList.remove("active");
+
         });
 
-        var objetivo = document.getElementById(id);
+
+        const objetivo = document.getElementById(id);
 
         if (objetivo) {
+
             objetivo.classList.add("active");
+
         }
+
 
         document.querySelectorAll(".nav-item").forEach(function (boton) {
 
-            boton.classList.toggle(
-                "active",
-                boton.getAttribute("data-section") === id
-            );
+            boton.classList.remove("active");
+
+            if (boton.getAttribute("data-section") === id) {
+
+                boton.classList.add("active");
+
+            }
 
         });
 
-        var titulos = {
+
+        const titulos = {
 
             inicio: [
                 "Inicio",
@@ -96,110 +158,155 @@ document.addEventListener("DOMContentLoaded", function () {
 
         };
 
-        var info = titulos[id] || titulos.inicio;
 
-        var titulo = document.getElementById("page-title");
-        var subtitulo = document.getElementById("page-subtitle");
+        const info = titulos[id] || titulos.inicio;
+
+
+        const titulo = document.getElementById("page-title");
+
+        const subtitulo = document.getElementById("page-subtitle");
+
 
         if (titulo) {
+
             titulo.textContent = info[0];
+
         }
+
 
         if (subtitulo) {
+
             subtitulo.textContent = info[1];
+
         }
 
-
-        /* Actualizar contenido de la sección */
-
-        if (id === "inicio") {
-            actualizarTodo();
-        }
 
         if (id === "estudiantes") {
+
             renderEstudiantes();
+
         }
+
 
         if (id === "atenciones") {
+
             renderAtenciones();
+
         }
+
 
         if (id === "seguimientos") {
+
             renderSeguimientos();
+
         }
 
-    };
+    }
 
 
     /* =========================================================
        BOTONES
     ========================================================= */
 
-    function iniciarBotones() {
+    function configurarBotones() {
 
-        enlazar("btnNuevaAtencion", function () {
-            abrirModalAtencion();
-        });
+        document.addEventListener("click", function (evento) {
 
-        enlazar("btnQuickAttention", function () {
-            abrirModalAtencion();
-        });
+            const boton = evento.target.closest("button");
 
-        enlazar("btnAgregarEstudiante", function () {
-            abrirModalEstudiante();
-        });
-
-        enlazar("btnAgregarAtencion", function () {
-            abrirModalAtencion();
-        });
-
-        enlazar("btnQuickStudent", function () {
-            abrirModalEstudiante();
-        });
-
-        enlazar("btnQuickFollow", function () {
-            mostrarSeccion("seguimientos");
-        });
-
-        enlazar("btnVerAtenciones", function () {
-            mostrarSeccion("atenciones");
-        });
-
-        enlazar("btnVerSeguimientos", function () {
-            mostrarSeccion("seguimientos");
-        });
+            if (!boton) {
+                return;
+            }
 
 
-        /* Filtros de seguimientos */
-
-        document.querySelectorAll(".follow-tab").forEach(function (tab) {
-
-            tab.addEventListener("click", function () {
-
-                filtroSeguimientos =
-                    tab.getAttribute("data-filter") || "todos";
-
-                document.querySelectorAll(".follow-tab").forEach(function (x) {
-                    x.classList.remove("active");
-                });
-
-                tab.classList.add("active");
-
-                renderSeguimientos();
-
-            });
-
-        });
+            const id = boton.id;
 
 
-        /* Menú móvil */
+            if (id === "btnNuevaAtencion") {
 
-        enlazar("btnMobileMenu", function () {
+                evento.preventDefault();
 
-            var sidebar = document.getElementById("sidebar");
+                abrirModalAtencion();
 
-            if (sidebar) {
-                sidebar.classList.toggle("open");
+                return;
+
+            }
+
+
+            if (id === "btnQuickAttention") {
+
+                evento.preventDefault();
+
+                abrirModalAtencion();
+
+                return;
+
+            }
+
+
+            if (id === "btnAgregarEstudiante") {
+
+                evento.preventDefault();
+
+                abrirModalEstudiante();
+
+                return;
+
+            }
+
+
+            if (id === "btnAgregarAtencion") {
+
+                evento.preventDefault();
+
+                abrirModalAtencion();
+
+                return;
+
+            }
+
+
+            if (id === "btnQuickStudent") {
+
+                evento.preventDefault();
+
+                abrirModalEstudiante();
+
+                return;
+
+            }
+
+
+            if (id === "btnQuickFollow") {
+
+                evento.preventDefault();
+
+                mostrarSeccion("seguimientos");
+
+                return;
+
+            }
+
+
+            if (id === "btnVerAtenciones") {
+
+                evento.preventDefault();
+
+                mostrarSeccion("atenciones");
+
+                return;
+
+            }
+
+
+            if (id === "btnVerSeguimientos") {
+
+                evento.preventDefault();
+
+                mostrarSeccion("seguimientos");
+
+                return;
+
             }
 
         });
@@ -211,45 +318,50 @@ document.addEventListener("DOMContentLoaded", function () {
        MODALES
     ========================================================= */
 
-    function iniciarModales() {
+    function configurarModales() {
 
-        document.querySelectorAll("[data-close]").forEach(function (boton) {
+        document.addEventListener("click", function (evento) {
 
-            boton.addEventListener("click", function () {
+            const cerrar = evento.target.closest("[data-close]");
 
-                var modal = boton.getAttribute("data-close");
+            if (cerrar) {
 
-                cerrarModal(modal);
+                evento.preventDefault();
 
-            });
+                cerrarModal(
+                    cerrar.getAttribute("data-close")
+                );
 
-        });
+                return;
+
+            }
 
 
-        document.querySelectorAll(".modal").forEach(function (modal) {
+            const modal = evento.target.closest(".modal");
 
-            modal.addEventListener("click", function (evento) {
+            if (
+                modal &&
+                evento.target === modal
+            ) {
 
-                if (evento.target === modal) {
-                    cerrarModal(modal.id);
-                }
+                cerrarModal(modal.id);
 
-            });
+            }
 
         });
 
 
         document.addEventListener("keydown", function (evento) {
 
-            if (evento.key === "Escape") {
-
-                document.querySelectorAll(".modal.active").forEach(function (modal) {
-
-                    cerrarModal(modal.id);
-
-                });
-
+            if (evento.key !== "Escape") {
+                return;
             }
+
+            document.querySelectorAll(".modal.active").forEach(function (modal) {
+
+                cerrarModal(modal.id);
+
+            });
 
         });
 
@@ -258,9 +370,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function abrirModal(id) {
 
-        var modal = document.getElementById(id);
+        const modal = document.getElementById(id);
 
-        if (!modal) return;
+        if (!modal) {
+            return;
+        }
 
         modal.classList.add("active");
 
@@ -269,45 +383,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function cerrarModal(id) {
 
-        var modal = document.getElementById(id);
+        const modal = document.getElementById(id);
 
-        if (!modal) return;
+        if (!modal) {
+            return;
+        }
 
         modal.classList.remove("active");
-
-    }
-
-
-    /* =========================================================
-       FORMULARIOS
-    ========================================================= */
-
-    function iniciarFormularios() {
-
-        var formEstudiante =
-            document.getElementById("form-estudiante");
-
-        if (formEstudiante) {
-
-            formEstudiante.addEventListener(
-                "submit",
-                guardarEstudiante
-            );
-
-        }
-
-
-        var formAtencion =
-            document.getElementById("form-atencion");
-
-        if (formAtencion) {
-
-            formAtencion.addEventListener(
-                "submit",
-                guardarAtencion
-            );
-
-        }
 
     }
 
@@ -316,62 +398,66 @@ document.addEventListener("DOMContentLoaded", function () {
        ESTUDIANTES
     ========================================================= */
 
-    function abrirModalEstudiante(estudiante) {
+    function abrirModalEstudiante(estudiante = null) {
 
-        limpiarFormularioEstudiante();
+        const form = document.getElementById("form-estudiante");
 
-        var titulo =
+        if (!form) {
+            return;
+        }
+
+
+        form.reset();
+
+
+        const id = document.getElementById("id-estudiante");
+
+        const nombre = document.getElementById("nombre-estudiante");
+
+        const curso = document.getElementById("curso-estudiante");
+
+        const edad = document.getElementById("edad-estudiante");
+
+        const observacion =
+            document.getElementById("observacion-estudiante");
+
+
+        const titulo =
             document.getElementById("titulo-modal-estudiante");
+
 
         if (estudiante) {
 
-            ponerValor("id-estudiante", estudiante.id);
-            ponerValor("nombre-estudiante", estudiante.nombre);
-            ponerValor("curso-estudiante", estudiante.curso);
-            ponerValor("edad-estudiante", estudiante.edad);
-            ponerValor(
-                "observacion-estudiante",
-                estudiante.observacion
-            );
+            id.value = estudiante.id;
 
-            if (titulo) {
-                titulo.textContent = "Editar estudiante";
-            }
+            nombre.value = estudiante.nombre || "";
+
+            curso.value = estudiante.curso || "";
+
+            edad.value = estudiante.edad || "";
+
+            observacion.value =
+                estudiante.observacion || "";
+
+            titulo.textContent = "Editar estudiante";
 
         } else {
 
-            if (titulo) {
-                titulo.textContent = "Nuevo estudiante";
-            }
+            id.value = "";
+
+            titulo.textContent = "Nuevo estudiante";
 
         }
+
 
         abrirModal("modal-estudiante");
 
+
         setTimeout(function () {
 
-            var campo =
-                document.getElementById("nombre-estudiante");
-
-            if (campo) {
-                campo.focus();
-            }
+            nombre.focus();
 
         }, 100);
-
-    }
-
-
-    function limpiarFormularioEstudiante() {
-
-        var formulario =
-            document.getElementById("form-estudiante");
-
-        if (formulario) {
-            formulario.reset();
-        }
-
-        ponerValor("id-estudiante", "");
 
     }
 
@@ -380,20 +466,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
         evento.preventDefault();
 
-        var id =
-            obtenerValor("id-estudiante");
 
-        var nombre =
-            obtenerValor("nombre-estudiante").trim();
+        const id =
+            document.getElementById("id-estudiante").value;
 
-        var curso =
-            obtenerValor("curso-estudiante").trim();
 
-        var edad =
-            obtenerValor("edad-estudiante");
+        const nombre =
+            document.getElementById("nombre-estudiante").value.trim();
 
-        var observacion =
-            obtenerValor("observacion-estudiante").trim();
+
+        const curso =
+            document.getElementById("curso-estudiante").value.trim();
+
+
+        const edad =
+            document.getElementById("edad-estudiante").value;
+
+
+        const observacion =
+            document.getElementById("observacion-estudiante").value.trim();
 
 
         if (!nombre || !curso) {
@@ -403,39 +494,54 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
             return;
+
         }
-
-
-        var estudiante = {
-
-            id: id || generarId(),
-
-            nombre: nombre,
-
-            curso: curso,
-
-            edad: edad,
-
-            observacion: observacion,
-
-            creado: new Date().toISOString()
-
-        };
 
 
         if (id) {
 
-            estudiantes = estudiantes.map(function (item) {
+            const indice =
+                estudiantes.findIndex(function (e) {
 
-                return item.id === id
-                    ? estudiante
-                    : item;
+                    return e.id === id;
 
-            });
+                });
+
+
+            if (indice !== -1) {
+
+                estudiantes[indice] = {
+
+                    id: id,
+
+                    nombre: nombre,
+
+                    curso: curso,
+
+                    edad: edad,
+
+                    observacion: observacion
+
+                };
+
+            }
 
         } else {
 
-            estudiantes.push(estudiante);
+            estudiantes.push({
+
+                id:
+                    Date.now().toString(),
+
+                nombre: nombre,
+
+                curso: curso,
+
+                edad: edad,
+
+                observacion: observacion
+
+            });
 
         }
 
@@ -446,56 +552,52 @@ document.addEventListener("DOMContentLoaded", function () {
 
         actualizarTodo();
 
+        mostrarSeccion("estudiantes");
+
         mostrarToast(
             id
                 ? "Estudiante actualizado."
-                : "Estudiante guardado correctamente."
+                : "Estudiante registrado."
         );
 
     }
 
 
-    function renderEstudiantes(busqueda) {
+    function renderEstudiantes(filtro = "") {
 
-        var lista =
+        const contenedor =
             document.getElementById("lista-estudiantes");
 
-        if (!lista) return;
+
+        if (!contenedor) {
+            return;
+        }
 
 
-        var texto =
-            (busqueda || "").toLowerCase().trim();
+        const texto =
+            String(filtro).toLowerCase().trim();
 
 
-        var filtrados =
-            estudiantes.filter(function (e) {
+        const lista =
+            estudiantes.filter(function (estudiante) {
 
-                var nombre =
-                    (e.nombre || "").toLowerCase();
-
-                var curso =
-                    (e.curso || "").toLowerCase();
-
-                return (
-                    !texto ||
-                    nombre.indexOf(texto) !== -1 ||
-                    curso.indexOf(texto) !== -1
-                );
+                return estudiante.nombre
+                    .toLowerCase()
+                    .includes(texto);
 
             });
 
 
-        var cantidad =
-            document.getElementById(
-                "cantidad-estudiantes"
-            );
+        const cantidad =
+            document.getElementById("cantidad-estudiantes");
+
 
         if (cantidad) {
 
             cantidad.textContent =
-                filtrados.length +
+                lista.length +
                 (
-                    filtrados.length === 1
+                    lista.length === 1
                         ? " estudiante"
                         : " estudiantes"
                 );
@@ -503,165 +605,210 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        if (!filtrados.length) {
+        if (!lista.length) {
 
-            lista.innerHTML =
-                '<div class="empty-state">' +
-                    '<strong>No hay estudiantes</strong>' +
-                    '<p>Registra un estudiante para comenzar.</p>' +
-                '</div>';
+            contenedor.innerHTML = `
+
+                <div class="empty-state">
+
+                    <strong>No hay estudiantes registrados</strong>
+
+                    <p>
+                        Agrega el primer estudiante para comenzar.
+                    </p>
+
+                </div>
+
+            `;
 
             return;
+
         }
 
 
-        lista.innerHTML =
-            filtrados.map(function (e) {
+        contenedor.innerHTML =
+            lista.map(function (estudiante) {
 
-                return (
+                return `
 
-                    '<article class="student-card">' +
+                    <article class="student-card">
 
-                        '<div class="student-top">' +
+                        <div class="student-top">
 
-                            '<div class="student-avatar">' +
-                                escaparHTML(
-                                    iniciales(e.nombre)
-                                ) +
-                            '</div>' +
+                            <div>
 
-                            '<div class="card-actions">' +
+                                <h3 class="student-name">
+                                    ${escapar(estudiante.nombre)}
+                                </h3>
 
-                                '<button ' +
-                                    'class="icon-button" ' +
-                                    'data-action="perfil" ' +
-                                    'data-id="' +
-                                        escaparHTML(e.id) +
-                                    '">' +
-                                    'Ver' +
-                                '</button>' +
+                                <span class="student-course">
+                                    ${escapar(estudiante.curso)}
+                                </span>
 
-                                '<button ' +
-                                    'class="icon-button danger" ' +
-                                    'data-action="eliminar-estudiante" ' +
-                                    'data-id="' +
-                                        escaparHTML(e.id) +
-                                    '">' +
-                                    '×' +
-                                '</button>' +
+                            </div>
 
-                            '</div>' +
+                        </div>
 
-                        '</div>' +
+                        <div class="student-meta">
 
-                        '<div class="student-name">' +
-                            escaparHTML(e.nombre) +
-                        '</div>' +
+                            ${
+                                estudiante.edad
+                                    ? "Edad: " +
+                                      escapar(String(estudiante.edad))
+                                    : "Edad no registrada"
+                            }
 
-                        '<div class="student-course">' +
-                            escaparHTML(e.curso) +
-                        '</div>' +
+                        </div>
 
-                        '<div class="student-meta">' +
+                        <div class="card-actions">
 
-                            '<span>' +
-                                (
-                                    e.edad
-                                        ? "Edad: " +
-                                          escaparHTML(String(e.edad))
-                                        : "Edad no registrada"
-                                ) +
-                            '</span>' +
+                            <button
+                                class="btn btn-secondary btn-editar-estudiante"
+                                data-id="${estudiante.id}"
+                                type="button"
+                            >
+                                Editar
+                            </button>
 
-                            '<span>' +
-                                contarNotas(e.id) +
-                                ' notas' +
-                            '</span>' +
+                            <button
+                                class="btn btn-secondary btn-ver-estudiante"
+                                data-id="${estudiante.id}"
+                                type="button"
+                            >
+                                Ver ficha
+                            </button>
 
-                        '</div>' +
+                            <button
+                                class="btn btn-danger btn-eliminar-estudiante"
+                                data-id="${estudiante.id}"
+                                type="button"
+                            >
+                                Eliminar
+                            </button>
 
-                    '</article>'
+                        </div>
 
-                );
+                    </article>
+
+                `;
 
             }).join("");
-
-
-        lista.querySelectorAll("[data-action]").forEach(
-            function (boton) {
-
-                boton.addEventListener(
-                    "click",
-                    function () {
-
-                        var id =
-                            boton.getAttribute("data-id");
-
-                        var estudiante =
-                            estudiantes.find(function (x) {
-                                return x.id === id;
-                            });
-
-                        if (!estudiante) return;
-
-
-                        var accion =
-                            boton.getAttribute("data-action");
-
-
-                        if (accion === "perfil") {
-
-                            abrirPerfil(estudiante);
-
-                        }
-
-
-                        if (
-                            accion ===
-                            "eliminar-estudiante"
-                        ) {
-
-                            eliminarEstudiante(
-                                estudiante.id
-                            );
-
-                        }
-
-                    }
-                );
-
-            }
-        );
 
     }
 
 
-    function eliminarEstudiante(id) {
+    /* =========================================================
+       ACCIONES DE ESTUDIANTES
+    ========================================================= */
 
-        var confirmar =
-            confirm(
-                "¿Deseas eliminar este estudiante? " +
-                "También se eliminarán sus registros asociados."
+    document.addEventListener("click", function (evento) {
+
+        const editar =
+            evento.target.closest(".btn-editar-estudiante");
+
+
+        if (editar) {
+
+            const estudiante =
+                estudiantes.find(function (e) {
+
+                    return e.id === editar.dataset.id;
+
+                });
+
+
+            if (estudiante) {
+
+                abrirModalEstudiante(estudiante);
+
+            }
+
+            return;
+
+        }
+
+
+        const eliminar =
+            evento.target.closest(".btn-eliminar-estudiante");
+
+
+        if (eliminar) {
+
+            eliminarEstudiante(
+                eliminar.dataset.id
             );
 
-        if (!confirmar) return;
+            return;
+
+        }
+
+
+        const ver =
+            evento.target.closest(".btn-ver-estudiante");
+
+
+        if (ver) {
+
+            const estudiante =
+                estudiantes.find(function (e) {
+
+                    return e.id === ver.dataset.id;
+
+                });
+
+
+            if (estudiante) {
+
+                abrirPerfil(estudiante);
+
+            }
+
+        }
+
+    });
+
+
+    function eliminarEstudiante(id) {
+
+        const estudiante =
+            estudiantes.find(function (e) {
+
+                return e.id === id;
+
+            });
+
+
+        if (!estudiante) {
+            return;
+        }
+
+
+        const confirmar =
+            confirm(
+                "¿Deseas eliminar a " +
+                estudiante.nombre +
+                "?"
+            );
+
+
+        if (!confirmar) {
+            return;
+        }
 
 
         estudiantes =
             estudiantes.filter(function (e) {
+
                 return e.id !== id;
+
             });
 
 
         atenciones =
             atenciones.filter(function (a) {
+
                 return a.estudianteId !== id;
-            });
 
-
-        notas =
-            notas.filter(function (n) {
-                return n.estudianteId !== id;
             });
 
 
@@ -682,101 +829,83 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function abrirPerfil(estudiante) {
 
-        var nombre =
+        const titulo =
             document.getElementById("perfil-nombre");
 
-        var contenido =
-            document.getElementById(
-                "contenido-perfil"
-            );
+
+        const contenido =
+            document.getElementById("contenido-perfil");
 
 
-        if (nombre) {
-            nombre.textContent =
-                estudiante.nombre;
+        if (!titulo || !contenido) {
+            return;
         }
 
 
-        if (!contenido) return;
+        titulo.textContent =
+            estudiante.nombre;
 
 
-        var susAtenciones =
+        const susAtenciones =
             atenciones.filter(function (a) {
+
                 return a.estudianteId === estudiante.id;
+
             });
 
 
-        var susNotas =
-            notas.filter(function (n) {
-                return n.estudianteId === estudiante.id;
-            });
+        contenido.innerHTML = `
 
+            <div style="padding:22px">
 
-        contenido.innerHTML =
+                <div class="panel" style="padding:18px;margin-bottom:16px">
 
-            '<div style="padding:22px">' +
+                    <strong>Información del estudiante</strong>
 
-                '<div class="panel" style="padding:18px;margin-bottom:16px">' +
+                    <p style="margin-top:10px">
+                        Curso:
+                        ${escapar(estudiante.curso)}
+                    </p>
 
-                    '<strong>Información</strong>' +
-
-                    '<p style="margin-top:8px;color:#6b7280;font-size:12px">' +
-                        'Curso: ' +
-                        escaparHTML(estudiante.curso) +
-
-                        (
+                    <p style="margin-top:8px">
+                        ${
                             estudiante.edad
-                                ? " · Edad: " +
-                                  escaparHTML(
-                                      String(estudiante.edad)
-                                  )
-                                : ""
-                        ) +
+                                ? "Edad: " +
+                                  escapar(String(estudiante.edad))
+                                : "Edad no registrada"
+                        }
+                    </p>
 
-                    '</p>' +
-
-                    '<p style="margin-top:8px;color:#4b5563;font-size:12px;line-height:1.5">' +
-                        escaparHTML(
+                    <p style="margin-top:10px">
+                        ${escapar(
                             estudiante.observacion ||
                             "Sin observación general."
-                        ) +
-                    '</p>' +
+                        )}
+                    </p>
 
-                '</div>' +
+                </div>
 
 
-                '<div class="panel" style="padding:18px;margin-bottom:16px">' +
+                <div class="panel" style="padding:18px">
 
-                    '<strong>Atenciones</strong>' +
+                    <strong>Atenciones</strong>
 
-                    '<p style="margin-top:7px;color:#6b7280;font-size:12px">' +
-                        susAtenciones.length +
-                        (
+                    <p style="margin-top:8px">
+
+                        ${susAtenciones.length}
+                        ${
                             susAtenciones.length === 1
                                 ? " atención registrada."
                                 : " atenciones registradas."
-                        ) +
-                    '</p>' +
+                        }
 
-                '</div>' +
+                    </p>
 
+                </div>
 
-                '<div class="panel" style="padding:18px">' +
+            </div>
 
-                    '<strong>Notas de conversación</strong>' +
-
-                    '<p style="margin-top:7px;color:#6b7280;font-size:12px">' +
-                        susNotas.length +
-                        (
-                            susNotas.length === 1
-                                ? " nota registrada."
-                                : " notas registradas."
-                        ) +
-                    '</p>' +
-
-                '</div>' +
-
-            '</div>';
+        `;
 
 
         abrirModal("modal-perfil");
@@ -788,121 +917,97 @@ document.addEventListener("DOMContentLoaded", function () {
        ATENCIONES
     ========================================================= */
 
-    function abrirModalAtencion(atencion) {
+    function abrirModalAtencion(atencion = null) {
 
         if (!estudiantes.length) {
 
             mostrarToast(
-                "Primero debes registrar un estudiante."
+                "Primero registra un estudiante."
             );
 
             mostrarSeccion("estudiantes");
 
             return;
+
         }
 
 
-        var formulario =
+        const form =
             document.getElementById("form-atencion");
 
-        if (formulario) {
-            formulario.reset();
+
+        if (!form) {
+            return;
         }
 
 
-        ponerValor("id-atencion", "");
+        form.reset();
 
 
-        var titulo =
-            document.getElementById(
-                "titulo-modal-atencion"
-            );
+        document.getElementById("id-atencion").value =
+            atencion ? atencion.id : "";
 
 
-        if (titulo) {
-
-            titulo.textContent =
-                atencion
-                    ? "Editar atención"
-                    : "Nueva atención";
-
-        }
+        document.getElementById("titulo-modal-atencion").textContent =
+            atencion
+                ? "Editar atención"
+                : "Nueva atención";
 
 
-        ponerValor(
-            "fecha-atencion",
+        const select =
+            document.getElementById("atencion-estudiante");
+
+
+        select.innerHTML =
+            '<option value="">Selecciona un estudiante</option>';
+
+
+        estudiantes.forEach(function (estudiante) {
+
+            const option =
+                document.createElement("option");
+
+
+            option.value =
+                estudiante.id;
+
+
+            option.textContent =
+                estudiante.nombre +
+                " — " +
+                estudiante.curso;
+
+
+            select.appendChild(option);
+
+        });
+
+
+        document.getElementById("fecha-atencion").value =
             atencion
                 ? atencion.fecha
-                : fechaActual()
-        );
-
-
-        var select =
-            document.getElementById(
-                "atencion-estudiante"
-            );
-
-
-        if (select) {
-
-            select.innerHTML =
-                '<option value="">Selecciona un estudiante</option>';
-
-
-            estudiantes.forEach(function (e) {
-
-                select.innerHTML +=
-                    '<option value="' +
-                        escaparHTML(e.id) +
-                    '">' +
-
-                        escaparHTML(e.nombre) +
-                        " — " +
-                        escaparHTML(e.curso) +
-
-                    '</option>';
-
-            });
-
-        }
+                : fechaActual();
 
 
         if (atencion) {
 
-            ponerValor(
-                "id-atencion",
-                atencion.id
-            );
+            select.value =
+                atencion.estudianteId;
 
-            ponerValor(
-                "atencion-estudiante",
-                atencion.estudianteId
-            );
+            document.getElementById("motivo-atencion").value =
+                atencion.motivo || "";
 
-            ponerValor(
-                "motivo-atencion",
-                atencion.motivo
-            );
+            document.getElementById("detalle-atencion").value =
+                atencion.detalle || "";
 
-            ponerValor(
-                "detalle-atencion",
-                atencion.detalle
-            );
+            document.getElementById("observaciones-atencion").value =
+                atencion.observaciones || "";
 
-            ponerValor(
-                "observaciones-atencion",
-                atencion.observaciones
-            );
+            document.getElementById("acuerdos-atencion").value =
+                atencion.acuerdos || "";
 
-            ponerValor(
-                "acuerdos-atencion",
-                atencion.acuerdos
-            );
-
-            ponerValor(
-                "seguimiento-atencion",
-                atencion.seguimiento
-            );
+            document.getElementById("seguimiento-atencion").value =
+                atencion.seguimiento || "";
 
         }
 
@@ -917,77 +1022,89 @@ document.addEventListener("DOMContentLoaded", function () {
         evento.preventDefault();
 
 
-        var id =
-            obtenerValor("id-atencion");
+        const estudianteId =
+            document.getElementById("atencion-estudiante").value;
 
 
-        var datos = {
-
-            id: id || generarId(),
-
-            estudianteId:
-                obtenerValor(
-                    "atencion-estudiante"
-                ),
-
-            fecha:
-                obtenerValor(
-                    "fecha-atencion"
-                ),
-
-            motivo:
-                obtenerValor(
-                    "motivo-atencion"
-                ).trim(),
-
-            detalle:
-                obtenerValor(
-                    "detalle-atencion"
-                ).trim(),
-
-            observaciones:
-                obtenerValor(
-                    "observaciones-atencion"
-                ).trim(),
-
-            acuerdos:
-                obtenerValor(
-                    "acuerdos-atencion"
-                ).trim(),
-
-            seguimiento:
-                obtenerValor(
-                    "seguimiento-atencion"
-                )
-
-        };
+        const fecha =
+            document.getElementById("fecha-atencion").value;
 
 
-        if (
-            !datos.estudianteId ||
-            !datos.fecha ||
-            !datos.motivo ||
-            !datos.detalle
-        ) {
+        const motivo =
+            document.getElementById("motivo-atencion").value.trim();
+
+
+        const detalle =
+            document.getElementById("detalle-atencion").value.trim();
+
+
+        if (!estudianteId || !fecha || !motivo || !detalle) {
 
             mostrarToast(
                 "Completa los campos obligatorios."
             );
 
             return;
+
         }
+
+
+        const id =
+            document.getElementById("id-atencion").value;
+
+
+        const datos = {
+
+            id:
+                id ||
+                Date.now().toString(),
+
+            estudianteId:
+                estudianteId,
+
+            fecha:
+                fecha,
+
+            motivo:
+                motivo,
+
+            detalle:
+                detalle,
+
+            observaciones:
+                document.getElementById(
+                    "observaciones-atencion"
+                ).value.trim(),
+
+            acuerdos:
+                document.getElementById(
+                    "acuerdos-atencion"
+                ).value.trim(),
+
+            seguimiento:
+                document.getElementById(
+                    "seguimiento-atencion"
+                ).value
+
+        };
 
 
         if (id) {
 
-            atenciones =
-                atenciones.map(function (a) {
+            const indice =
+                atenciones.findIndex(function (a) {
 
-                    return a.id === id
-                        ? datos
-                        : a;
+                    return a.id === id;
 
                 });
+
+
+            if (indice !== -1) {
+
+                atenciones[indice] =
+                    datos;
+
+            }
 
         } else {
 
@@ -1002,10 +1119,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         actualizarTodo();
 
+        mostrarSeccion("atenciones");
+
         mostrarToast(
             id
                 ? "Atención actualizada."
-                : "Atención guardada correctamente."
+                : "Atención registrada."
         );
 
     }
@@ -1013,287 +1132,337 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function renderAtenciones() {
 
-        var lista =
-            document.getElementById(
-                "lista-atenciones"
-            );
-
-        if (!lista) return;
+        const contenedor =
+            document.getElementById("lista-atenciones");
 
 
-        var ordenadas =
-            atenciones.slice().sort(
-                function (a, b) {
-
-                    return (
-                        b.fecha || ""
-                    ).localeCompare(
-                        a.fecha || ""
-                    );
-
-                }
-            );
-
-
-        if (!ordenadas.length) {
-
-            lista.innerHTML =
-                '<div class="empty-state">' +
-                    '<strong>No hay atenciones registradas</strong>' +
-                    '<p>Registra la primera atención.</p>' +
-                '</div>';
-
+        if (!contenedor) {
             return;
         }
 
 
-        lista.innerHTML =
-            ordenadas.map(function (a) {
+        if (!atenciones.length) {
 
-                var estudiante =
-                    estudiantes.find(
-                        function (e) {
-                            return e.id === a.estudianteId;
-                        }
-                    );
+            contenedor.innerHTML = `
 
+                <div class="empty-state">
 
-                return (
+                    <strong>No hay atenciones registradas</strong>
 
-                    '<article class="attention-card">' +
+                    <p>
+                        Registra una atención para verla aquí.
+                    </p>
 
-                        '<div class="attention-top">' +
+                </div>
 
-                            '<div>' +
+            `;
 
-                                '<div class="attention-name">' +
-                                    escaparHTML(
-                                        estudiante
-                                            ? estudiante.nombre
-                                            : "Estudiante eliminado"
-                                    ) +
-                                '</div>' +
+            return;
 
-                                '<div class="attention-motive">' +
-                                    escaparHTML(
-                                        a.motivo
-                                    ) +
-                                '</div>' +
-
-                            '</div>' +
-
-                            '<div class="attention-date">' +
-                                escaparHTML(
-                                    a.fecha
-                                ) +
-                            '</div>' +
-
-                        '</div>' +
+        }
 
 
-                        '<div class="attention-detail">' +
-                            escaparHTML(
-                                a.detalle
-                            ) +
-                        '</div>' +
+        const lista =
+            [...atenciones].sort(function (a, b) {
+
+                return b.fecha.localeCompare(a.fecha);
+
+            });
 
 
-                        '<div class="attention-footer">' +
+        contenedor.innerHTML =
+            lista.map(function (atencion) {
 
-                            '<span class="follow-date">' +
-                                (
-                                    a.seguimiento
-                                        ? "Seguimiento: " +
-                                          escaparHTML(
-                                              a.seguimiento
-                                          )
-                                        : "Sin seguimiento"
-                                ) +
-                            '</span>' +
+                const estudiante =
+                    estudiantes.find(function (e) {
 
-                            '<button ' +
-                                'class="text-button" ' +
-                                'data-edit-attention="' +
-                                    escaparHTML(a.id) +
-                                '">' +
-                                'Editar' +
-                            '</button>' +
+                        return e.id === atencion.estudianteId;
 
-                        '</div>' +
+                    });
 
-                    '</article>'
 
-                );
+                const nombre =
+                    estudiante
+                        ? estudiante.nombre
+                        : "Estudiante eliminado";
+
+
+                return `
+
+                    <article class="attention-card">
+
+                        <div>
+
+                            <strong>
+                                ${escapar(nombre)}
+                            </strong>
+
+                            <span>
+                                ${formatearFecha(atencion.fecha)}
+                            </span>
+
+                        </div>
+
+                        <h3>
+                            ${escapar(atencion.motivo)}
+                        </h3>
+
+                        <p>
+                            ${escapar(atencion.detalle)}
+                        </p>
+
+                        <div class="card-actions">
+
+                            <button
+                                type="button"
+                                class="btn btn-secondary btn-editar-atencion"
+                                data-id="${atencion.id}"
+                            >
+                                Editar
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-danger btn-eliminar-atencion"
+                                data-id="${atencion.id}"
+                            >
+                                Eliminar
+                            </button>
+
+                        </div>
+
+                    </article>
+
+                `;
 
             }).join("");
 
+    }
 
-        lista.querySelectorAll(
-            "[data-edit-attention]"
-        ).forEach(function (boton) {
 
-            boton.addEventListener(
-                "click",
-                function () {
+    /* =========================================================
+       ACCIONES DE ATENCIONES
+    ========================================================= */
 
-                    var id =
-                        boton.getAttribute(
-                            "data-edit-attention"
-                        );
+    document.addEventListener("click", function (evento) {
 
-                    var atencion =
-                        atenciones.find(
-                            function (a) {
-                                return a.id === id;
-                            }
-                        );
+        const editar =
+            evento.target.closest(".btn-editar-atencion");
 
-                    if (atencion) {
-                        abrirModalAtencion(
-                            atencion
-                        );
-                    }
 
-                }
+        if (editar) {
+
+            const atencion =
+                atenciones.find(function (a) {
+
+                    return a.id === editar.dataset.id;
+
+                });
+
+
+            if (atencion) {
+
+                abrirModalAtencion(atencion);
+
+            }
+
+            return;
+
+        }
+
+
+        const eliminar =
+            evento.target.closest(".btn-eliminar-atencion");
+
+
+        if (eliminar) {
+
+            const confirmar =
+                confirm(
+                    "¿Deseas eliminar esta atención?"
+                );
+
+
+            if (!confirmar) {
+                return;
+            }
+
+
+            atenciones =
+                atenciones.filter(function (a) {
+
+                    return a.id !== eliminar.dataset.id;
+
+                });
+
+
+            guardarDatos();
+
+            actualizarTodo();
+
+            mostrarToast(
+                "Atención eliminada."
             );
 
-        });
+        }
 
-    }
+    });
 
 
     /* =========================================================
        SEGUIMIENTOS
     ========================================================= */
 
+    function configurarSeguimientos() {
+
+        document.addEventListener("click", function (evento) {
+
+            const boton =
+                evento.target.closest(".follow-tab");
+
+
+            if (!boton) {
+                return;
+            }
+
+
+            filtroSeguimientos =
+                boton.getAttribute("data-filter") ||
+                "todos";
+
+
+            document.querySelectorAll(".follow-tab")
+                .forEach(function (tab) {
+
+                    tab.classList.remove("active");
+
+                });
+
+
+            boton.classList.add("active");
+
+            renderSeguimientos();
+
+        });
+
+    }
+
+
     function renderSeguimientos() {
 
-        var lista =
-            document.getElementById(
-                "lista-seguimientos"
-            );
-
-        if (!lista) return;
+        const contenedor =
+            document.getElementById("lista-seguimientos");
 
 
-        var hoy =
-            fechaActual();
-
-
-        var datos =
-            atenciones
-                .filter(function (a) {
-                    return a.seguimiento;
-                })
-                .map(function (a) {
-
-                    var estado;
-
-                    if (a.seguimiento < hoy) {
-                        estado = "vencidos";
-                    } else {
-                        estado = "pendientes";
-                    }
-
-                    return {
-                        atencion: a,
-                        estado: estado
-                    };
-
-                });
-
-
-        if (filtroSeguimientos !== "todos") {
-
-            datos =
-                datos.filter(function (item) {
-
-                    return (
-                        item.estado ===
-                        filtroSeguimientos
-                    );
-
-                });
-
-        }
-
-
-        if (!datos.length) {
-
-            lista.innerHTML =
-                '<div class="empty-state">' +
-                    '<strong>No hay seguimientos</strong>' +
-                    '<p>No se encontraron registros para este filtro.</p>' +
-                '</div>';
-
+        if (!contenedor) {
             return;
         }
 
 
-        lista.innerHTML =
-            datos.map(function (item) {
-
-                var a =
-                    item.atencion;
+        const hoy =
+            fechaActual();
 
 
-                var estudiante =
-                    estudiantes.find(
-                        function (e) {
-                            return e.id === a.estudianteId;
-                        }
-                    );
+        let lista =
+            atenciones.filter(function (atencion) {
+
+                return atencion.seguimiento;
+
+            });
 
 
-                var clase =
-                    item.estado === "vencidos"
-                        ? "overdue"
-                        : "pending";
+        if (filtroSeguimientos === "pendientes") {
+
+            lista =
+                lista.filter(function (a) {
+
+                    return a.seguimiento >= hoy;
+
+                });
+
+        }
 
 
-                var textoEstado =
-                    item.estado === "vencidos"
-                        ? "Vencido"
-                        : "Pendiente";
+        if (filtroSeguimientos === "vencidos") {
+
+            lista =
+                lista.filter(function (a) {
+
+                    return a.seguimiento < hoy;
+
+                });
+
+        }
 
 
-                return (
+        if (filtroSeguimientos === "realizados") {
 
-                    '<div class="follow-card ' +
-                        clase +
-                    '">' +
+            lista = [];
 
-                        '<div class="follow-main">' +
+        }
 
-                            '<strong>' +
-                                escaparHTML(
+
+        if (!lista.length) {
+
+            contenedor.innerHTML = `
+
+                <div class="empty-state">
+
+                    <strong>No hay seguimientos</strong>
+
+                    <p>
+                        No existen registros para este filtro.
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        contenedor.innerHTML =
+            lista.map(function (atencion) {
+
+                const estudiante =
+                    estudiantes.find(function (e) {
+
+                        return e.id === atencion.estudianteId;
+
+                    });
+
+
+                return `
+
+                    <article class="follow-card">
+
+                        <div>
+
+                            <strong>
+                                ${escapar(
                                     estudiante
                                         ? estudiante.nombre
-                                        : "Estudiante eliminado"
-                                ) +
-                            '</strong>' +
+                                        : "Estudiante"
+                                )}
+                            </strong>
 
-                            '<span>' +
-                                escaparHTML(
-                                    a.motivo
-                                ) +
-                                " · " +
-                                escaparHTML(
-                                    a.seguimiento
-                                ) +
-                            '</span>' +
+                            <span>
+                                ${formatearFecha(
+                                    atencion.seguimiento
+                                )}
+                            </span>
 
-                        '</div>' +
+                        </div>
 
-                        '<span class="follow-status ' +
-                            clase +
-                        '">' +
-                            textoEstado +
-                        '</span>' +
+                        <p>
+                            ${escapar(atencion.motivo)}
+                        </p>
 
-                    '</div>'
+                    </article>
 
-                );
+                `;
 
             }).join("");
 
@@ -1301,17 +1470,60 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =========================================================
-       BÚSQUEDA
+       FORMULARIOS
     ========================================================= */
 
-    function iniciarBusqueda() {
+    function configurarFormularios() {
 
-        var buscador =
+        const formEstudiante =
+            document.getElementById(
+                "form-estudiante"
+            );
+
+
+        if (formEstudiante) {
+
+            formEstudiante.addEventListener(
+                "submit",
+                guardarEstudiante
+            );
+
+        }
+
+
+        const formAtencion =
+            document.getElementById(
+                "form-atencion"
+            );
+
+
+        if (formAtencion) {
+
+            formAtencion.addEventListener(
+                "submit",
+                guardarAtencion
+            );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       BUSCADOR
+    ========================================================= */
+
+    function configurarBusqueda() {
+
+        const buscador =
             document.getElementById(
                 "buscar-estudiante"
             );
 
-        if (!buscador) return;
+
+        if (!buscador) {
+            return;
+        }
 
 
         buscador.addEventListener(
@@ -1334,29 +1546,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function actualizarTodo() {
 
-        renderEstudiantes();
-
-        renderAtenciones();
-
-        renderSeguimientos();
-
-
-        var totalEstudiantes =
+        const totalEstudiantes =
             document.getElementById(
                 "total-estudiantes"
             );
 
-        var totalAtenciones =
+
+        const totalAtenciones =
             document.getElementById(
                 "total-atenciones"
             );
 
-        var totalSeguimientos =
+
+        const totalSeguimientos =
             document.getElementById(
                 "total-seguimientos"
             );
 
-        var totalHoy =
+
+        const totalHoy =
             document.getElementById(
                 "total-hoy"
             );
@@ -1378,196 +1586,207 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
+        const seguimientos =
+            atenciones.filter(function (a) {
+
+                return a.seguimiento;
+
+            });
+
+
         if (totalSeguimientos) {
 
             totalSeguimientos.textContent =
-                atenciones.filter(function (a) {
-
-                    return !!a.seguimiento;
-
-                }).length;
+                seguimientos.length;
 
         }
+
+
+        const hoy =
+            fechaActual();
+
+
+        const hoyCantidad =
+            atenciones.filter(function (a) {
+
+                return a.fecha === hoy;
+
+            }).length;
 
 
         if (totalHoy) {
 
             totalHoy.textContent =
-                atenciones.filter(function (a) {
-
-                    return (
-                        a.fecha ===
-                        fechaActual()
-                    );
-
-                }).length;
+                hoyCantidad;
 
         }
 
 
-        /* Últimas atenciones */
+        renderEstudiantes();
 
-        var recientes =
+        renderAtenciones();
+
+        renderSeguimientos();
+
+        renderUltimasAtenciones();
+
+        renderProximosSeguimientos();
+
+    }
+
+
+    /* =========================================================
+       DASHBOARD
+    ========================================================= */
+
+    function renderUltimasAtenciones() {
+
+        const contenedor =
             document.getElementById(
                 "ultimas-atenciones"
             );
 
 
-        if (recientes) {
-
-            var listaReciente =
-                atenciones
-                    .slice()
-                    .sort(function (a, b) {
-
-                        return (
-                            b.fecha || ""
-                        ).localeCompare(
-                            a.fecha || ""
-                        );
-
-                    })
-                    .slice(0, 5);
+        if (!contenedor) {
+            return;
+        }
 
 
-            if (!listaReciente.length) {
+        const lista =
+            [...atenciones]
+                .sort(function (a, b) {
 
-                recientes.innerHTML =
-                    '<div class="empty-state">' +
-                        '<strong>Sin atenciones</strong>' +
-                        '<p>Aún no hay registros.</p>' +
-                    '</div>';
+                    return b.fecha.localeCompare(a.fecha);
 
-            } else {
-
-                recientes.innerHTML =
-                    listaReciente.map(function (a) {
-
-                        var estudiante =
-                            estudiantes.find(
-                                function (e) {
-                                    return e.id === a.estudianteId;
-                                }
-                            );
+                })
+                .slice(0, 5);
 
 
-                        return (
+        if (!lista.length) {
 
-                            '<div style="padding:15px 20px;border-bottom:1px solid var(--border)">' +
+            contenedor.innerHTML =
+                '<div class="empty-state">No hay atenciones todavía.</div>';
 
-                                '<strong style="font-size:12px">' +
-                                    escaparHTML(
-                                        estudiante
-                                            ? estudiante.nombre
-                                            : "Estudiante eliminado"
-                                    ) +
-                                '</strong>' +
-
-                                '<div style="margin-top:4px;color:#6b7280;font-size:11px">' +
-                                    escaparHTML(
-                                        a.motivo
-                                    ) +
-                                    " · " +
-                                    escaparHTML(
-                                        a.fecha
-                                    ) +
-                                '</div>' +
-
-                            '</div>'
-
-                        );
-
-                    }).join("");
-
-            }
+            return;
 
         }
 
 
-        /* Próximos seguimientos */
+        contenedor.innerHTML =
+            lista.map(function (a) {
 
-        var proximos =
+                const estudiante =
+                    estudiantes.find(function (e) {
+
+                        return e.id === a.estudianteId;
+
+                    });
+
+
+                return `
+
+                    <div class="list-item">
+
+                        <strong>
+                            ${escapar(
+                                estudiante
+                                    ? estudiante.nombre
+                                    : "Estudiante"
+                            )}
+                        </strong>
+
+                        <span>
+                            ${escapar(a.motivo)}
+                        </span>
+
+                    </div>
+
+                `;
+
+            }).join("");
+
+    }
+
+
+    function renderProximosSeguimientos() {
+
+        const contenedor =
             document.getElementById(
                 "proximos-seguimientos"
             );
 
 
-        if (proximos) {
-
-            var proximosLista =
-                atenciones
-                    .filter(function (a) {
-
-                        return (
-                            a.seguimiento &&
-                            a.seguimiento >= fechaActual()
-                        );
-
-                    })
-                    .sort(function (a, b) {
-
-                        return (
-                            a.seguimiento || ""
-                        ).localeCompare(
-                            b.seguimiento || ""
-                        );
-
-                    })
-                    .slice(0, 5);
+        if (!contenedor) {
+            return;
+        }
 
 
-            if (!proximosLista.length) {
-
-                proximos.innerHTML =
-                    '<div class="empty-state">' +
-                        '<strong>Sin próximos seguimientos</strong>' +
-                        '<p>No hay seguimientos pendientes.</p>' +
-                    '</div>';
-
-            } else {
-
-                proximos.innerHTML =
-                    proximosLista.map(function (a) {
-
-                        var estudiante =
-                            estudiantes.find(
-                                function (e) {
-                                    return e.id === a.estudianteId;
-                                }
-                            );
+        const hoy =
+            fechaActual();
 
 
-                        return (
+        const lista =
+            atenciones
+                .filter(function (a) {
 
-                            '<div style="padding:15px 20px;border-bottom:1px solid var(--border)">' +
+                    return (
+                        a.seguimiento &&
+                        a.seguimiento >= hoy
+                    );
 
-                                '<strong style="font-size:12px">' +
-                                    escaparHTML(
-                                        estudiante
-                                            ? estudiante.nombre
-                                            : "Estudiante eliminado"
-                                    ) +
-                                '</strong>' +
+                })
+                .sort(function (a, b) {
 
-                                '<div style="margin-top:4px;color:#6b7280;font-size:11px">' +
-                                    escaparHTML(
-                                        a.seguimiento
-                                    ) +
-                                    " · " +
-                                    escaparHTML(
-                                        a.motivo
-                                    ) +
-                                '</div>' +
+                    return a.seguimiento.localeCompare(
+                        b.seguimiento
+                    );
 
-                            '</div>'
+                })
+                .slice(0, 5);
 
-                        );
 
-                    }).join("");
+        if (!lista.length) {
 
-            }
+            contenedor.innerHTML =
+                '<div class="empty-state">No hay seguimientos próximos.</div>';
+
+            return;
 
         }
+
+
+        contenedor.innerHTML =
+            lista.map(function (a) {
+
+                const estudiante =
+                    estudiantes.find(function (e) {
+
+                        return e.id === a.estudianteId;
+
+                    });
+
+
+                return `
+
+                    <div class="list-item">
+
+                        <strong>
+                            ${escapar(
+                                estudiante
+                                    ? estudiante.nombre
+                                    : "Estudiante"
+                            )}
+                        </strong>
+
+                        <span>
+                            ${formatearFecha(a.seguimiento)}
+                        </span>
+
+                    </div>
+
+                `;
+
+            }).join("");
 
     }
 
@@ -1576,188 +1795,23 @@ document.addEventListener("DOMContentLoaded", function () {
        FECHA
     ========================================================= */
 
-    function actualizarFecha() {
-
-        var elemento =
-            document.getElementById("date");
-
-        if (!elemento) return;
-
-
-        var fecha =
-            new Date();
-
-
-        elemento.textContent =
-            fecha.toLocaleDateString(
-                "es-CO",
-                {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric"
-                }
-            );
-
-    }
-
-
-    /* =========================================================
-       DATOS / LOCALSTORAGE
-    ========================================================= */
-
-    function cargarJSON(clave) {
-
-        try {
-
-            var datos =
-                localStorage.getItem(clave);
-
-            if (!datos) {
-                return [];
-            }
-
-            var resultado =
-                JSON.parse(datos);
-
-            return Array.isArray(resultado)
-                ? resultado
-                : [];
-
-        } catch (error) {
-
-            console.error(
-                "Error leyendo " + clave,
-                error
-            );
-
-            return [];
-
-        }
-
-    }
-
-
-    function guardarDatos() {
-
-        try {
-
-            localStorage.setItem(
-                "estudiantes",
-                JSON.stringify(estudiantes)
-            );
-
-
-            localStorage.setItem(
-                "atenciones",
-                JSON.stringify(atenciones)
-            );
-
-
-            localStorage.setItem(
-                "notasConversacion",
-                JSON.stringify(notas)
-            );
-
-
-            window.estudiantes =
-                estudiantes;
-
-            window.atenciones =
-                atenciones;
-
-        } catch (error) {
-
-            console.error(
-                "No se pudieron guardar los datos.",
-                error
-            );
-
-            mostrarToast(
-                "No se pudieron guardar los datos."
-            );
-
-        }
-
-    }
-
-
-    /* =========================================================
-       UTILIDADES
-    ========================================================= */
-
-    function enlazar(id, funcion) {
-
-        var elemento =
-            document.getElementById(id);
-
-        if (!elemento) return;
-
-        elemento.addEventListener(
-            "click",
-            funcion
-        );
-
-    }
-
-
-    function obtenerValor(id) {
-
-        var elemento =
-            document.getElementById(id);
-
-        if (!elemento) {
-            return "";
-        }
-
-        return elemento.value || "";
-
-    }
-
-
-    function ponerValor(id, valor) {
-
-        var elemento =
-            document.getElementById(id);
-
-        if (!elemento) return;
-
-        elemento.value =
-            valor == null
-                ? ""
-                : valor;
-
-    }
-
-
-    function generarId() {
-
-        return (
-            Date.now().toString(36) +
-            Math.random()
-                .toString(36)
-                .substring(2, 9)
-        );
-
-    }
-
-
     function fechaActual() {
 
-        var fecha =
+        const fecha =
             new Date();
 
 
-        var año =
+        const año =
             fecha.getFullYear();
 
 
-        var mes =
+        const mes =
             String(
                 fecha.getMonth() + 1
             ).padStart(2, "0");
 
 
-        var dia =
+        const dia =
             String(
                 fecha.getDate()
             ).padStart(2, "0");
@@ -1774,33 +1828,69 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function iniciales(nombre) {
+    function actualizarFecha() {
 
-        return (
-            nombre || "?"
-        )
-            .split(/\s+/)
-            .filter(Boolean)
-            .slice(0, 2)
-            .map(function (palabra) {
+        const elemento =
+            document.getElementById("date");
 
-                return palabra
-                    .charAt(0);
 
-            })
-            .join("")
-            .toUpperCase();
+        if (!elemento) {
+            return;
+        }
+
+
+        const fecha =
+            new Date();
+
+
+        elemento.textContent =
+            fecha.toLocaleDateString(
+                "es-CO",
+                {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                }
+            );
 
     }
 
 
-    function escaparHTML(texto) {
+    function formatearFecha(fecha) {
 
-        return String(
-            texto == null
-                ? ""
-                : texto
-        )
+        if (!fecha) {
+            return "";
+        }
+
+
+        const partes =
+            fecha.split("-");
+
+
+        if (partes.length !== 3) {
+            return fecha;
+        }
+
+
+        return (
+            partes[2] +
+            "/" +
+            partes[1] +
+            "/" +
+            partes[0]
+        );
+
+    }
+
+
+    /* =========================================================
+       UTILIDADES
+    ========================================================= */
+
+    function escapar(texto) {
+
+        return String(texto || "")
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
@@ -1810,53 +1900,29 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function contarNotas(id) {
+    function mostrarToast(mensaje) {
 
-        return notas.filter(
-            function (nota) {
-
-                return (
-                    nota.estudianteId === id
-                );
-
-            }
-        ).length;
-
-    }
+        const toast =
+            document.getElementById("toast");
 
 
-    function mostrarToast(texto) {
-
-        var toast =
-            document.getElementById(
-                "toast"
-            );
-
-        if (!toast) return;
+        if (!toast) {
+            return;
+        }
 
 
         toast.textContent =
-            texto;
+            mensaje;
 
 
-        toast.classList.add(
-            "show"
-        );
+        toast.classList.add("show");
 
 
-        clearTimeout(
-            window.__toastTimer
-        );
+        setTimeout(function () {
 
+            toast.classList.remove("show");
 
-        window.__toastTimer =
-            setTimeout(function () {
-
-                toast.classList.remove(
-                    "show"
-                );
-
-            }, 2500);
+        }, 2500);
 
     }
 
