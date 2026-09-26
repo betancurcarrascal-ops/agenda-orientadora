@@ -659,3 +659,42 @@ textarea {
         gap: 4px;
     }
 }
+/* ICONOS — TAMAÑO PEQUEÑO Y MODERNO */
+
+.nav-item i,
+.nav-item svg,
+.nav-item img {
+    width: 16px !important;
+    height: 16px !important;
+    font-size: 15px !important;
+    margin-right: 9px;
+    vertical-align: middle;
+}
+
+/* Iconos de botones */
+button i,
+button svg {
+    width: 15px !important;
+    height: 15px !important;
+    font-size: 14px !important;
+    vertical-align: middle;
+}
+
+/* Iconos de estadísticas */
+.stat-card i,
+.stat-card svg {
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 17px !important;
+}
+
+/* Evita que los iconos agranden los botones */
+.nav-item {
+    display: flex;
+    align-items: center;
+}
+
+/* Si algún icono viene como imagen */
+.nav-item img {
+    object-fit: contain;
+}
