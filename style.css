@@ -698,3 +698,44 @@ button svg {
 .nav-item img {
     object-fit: contain;
 }
+/* ==========================================
+   TAMAÑO DE LOGOS E ICONOS PRINCIPALES
+========================================== */
+
+/* Logo/icono de la orientadora */
+.logo img,
+.logo svg,
+.logo i {
+    width: 28px !important;
+    height: 28px !important;
+    max-width: 28px !important;
+    max-height: 28px !important;
+    object-fit: contain;
+}
+
+/* Logo de Santa María */
+.santamaria img,
+.santamaria svg,
+.santamaria i,
+.logo-santamaria img,
+.logo-santamaria svg,
+.logo-santamaria i {
+    width: 30px !important;
+    height: 30px !important;
+    max-width: 30px !important;
+    max-height: 30px !important;
+    object-fit: contain;
+}
+
+/* Icono de la página */
+.page-icon,
+.page-icon img,
+.page-icon svg,
+.page-icon i {
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    font-size: 18px !important;
+    object-fit: contain;
+}
