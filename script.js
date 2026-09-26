@@ -1,97 +1,131 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
 
     let estudiantes = JSON.parse(localStorage.getItem("estudiantes") || "[]");
     let atenciones = JSON.parse(localStorage.getItem("atenciones") || "[]");
+    let notas = JSON.parse(localStorage.getItem("notas") || "[]");
 
-    function guardar() {
+    let notaActual = null;
+
+    const $ = id => document.getElementById(id);
+
+    function guardarDatos() {
         localStorage.setItem("estudiantes", JSON.stringify(estudiantes));
         localStorage.setItem("atenciones", JSON.stringify(atenciones));
+        localStorage.setItem("notas", JSON.stringify(notas));
     }
 
-    function $(id) {
-        return document.getElementById(id);
-    }
-
-    function fechaHoy() {
+    function hoy() {
         const d = new Date();
-        return d.getFullYear() + "-" +
-            String(d.getMonth() + 1).padStart(2, "0") + "-" +
-            String(d.getDate()).padStart(2, "0");
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     }
 
     function escapar(texto) {
-        return String(texto || "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return String(texto ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
     }
 
-    function mostrarToast(texto) {
-        const toast = $("toast");
-        if (!toast) return;
+    function toast(mensaje) {
+        const contenedor = $("toast-container");
+        if (!contenedor) return;
 
-        toast.textContent = texto;
-        toast.classList.add("show");
+        const elemento = document.createElement("div");
+        elemento.className = "toast";
+        elemento.textContent = mensaje;
+
+        contenedor.appendChild(elemento);
+
+        setTimeout(() => elemento.classList.add("show"), 10);
 
         setTimeout(() => {
-            toast.classList.remove("show");
+            elemento.classList.remove("show");
+            setTimeout(() => elemento.remove(), 300);
         }, 2500);
     }
 
-    /* =========================
+    /* =====================================================
+       FECHA
+    ===================================================== */
+
+    if ($("fecha-actual")) {
+        $("fecha-actual").textContent =
+            new Date().toLocaleDateString("es-CO", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            });
+    }
+
+
+    /* =====================================================
        NAVEGACIÓN
-    ========================= */
+    ===================================================== */
 
-    document.querySelectorAll(".nav-item").forEach(function (boton) {
+    const titulos = {
+        inicio: [
+            "Inicio",
+            "Panel de orientación escolar"
+        ],
+        estudiantes: [
+            "Estudiantes",
+            "Registro de estudiantes atendidos por orientación."
+        ],
+        atenciones: [
+            "Atenciones",
+            "Registro de las atenciones realizadas."
+        ],
+        seguimientos: [
+            "Seguimientos",
+            "Consulta y organiza los seguimientos pendientes."
+        ],
+        notas: [
+            "Notas de conversación",
+            "Registra y conserva las conversaciones realizadas."
+        ]
+    };
 
-        boton.addEventListener("click", function (e) {
+    document.querySelectorAll(".nav-item").forEach(boton => {
 
-            e.preventDefault();
+        boton.addEventListener("click", () => {
 
-            const id = boton.getAttribute("data-section");
+            const seccion = boton.dataset.section;
 
-            document.querySelectorAll(".section").forEach(function (s) {
-                s.classList.remove("active");
-            });
-
-            const seccion = $(id);
-
-            if (seccion) {
-                seccion.classList.add("active");
-            }
-
-            document.querySelectorAll(".nav-item").forEach(function (b) {
-                b.classList.remove("active");
-            });
+            document.querySelectorAll(".nav-item")
+                .forEach(b => b.classList.remove("active"));
 
             boton.classList.add("active");
 
-            if (id === "estudiantes") renderEstudiantes();
-            if (id === "atenciones") renderAtenciones();
-            if (id === "seguimientos") renderSeguimientos();
+            document.querySelectorAll(".section")
+                .forEach(s => s.classList.remove("active"));
 
-            const titulos = {
-                inicio: ["Inicio", "Resumen de la orientación escolar"],
-                estudiantes: ["Estudiantes", "Directorio y fichas de estudiantes"],
-                atenciones: ["Atenciones", "Historial de encuentros y situaciones atendidas"],
-                seguimientos: ["Seguimientos", "Control de compromisos y próximos contactos"]
-            };
+            const destino = $(seccion);
 
-            if (titulos[id]) {
-                if ($("page-title")) $("page-title").textContent = titulos[id][0];
-                if ($("page-subtitle")) $("page-subtitle").textContent = titulos[id][1];
+            if (destino) {
+                destino.classList.add("active");
             }
+
+            if (titulos[seccion]) {
+                $("page-title").textContent = titulos[seccion][0];
+                $("page-subtitle").textContent = titulos[seccion][1];
+            }
+
+            if (seccion === "estudiantes") renderEstudiantes();
+            if (seccion === "atenciones") renderAtenciones();
+            if (seccion === "seguimientos") renderSeguimientos();
+            if (seccion === "notas") prepararNotas();
 
         });
 
     });
 
 
-    /* =========================
-       ABRIR MODALES
-    ========================= */
+    /* =====================================================
+       MODALES
+    ===================================================== */
 
     function abrirModal(id) {
         const modal = $(id);
@@ -103,75 +137,17 @@ document.addEventListener("DOMContentLoaded", function () {
         if (modal) modal.classList.remove("active");
     }
 
+    document.querySelectorAll("[data-close-modal]").forEach(boton => {
 
-    /* =========================
-       BOTONES PRINCIPALES
-    ========================= */
-
-    if ($("btnAgregarEstudiante")) {
-        $("btnAgregarEstudiante").addEventListener("click", function () {
-            nuevoEstudiante();
-        });
-    }
-
-    if ($("btnQuickStudent")) {
-        $("btnQuickStudent").addEventListener("click", function () {
-            nuevoEstudiante();
-        });
-    }
-
-    if ($("btnAgregarAtencion")) {
-        $("btnAgregarAtencion").addEventListener("click", function () {
-            nuevaAtencion();
-        });
-    }
-
-    if ($("btnNuevaAtencion")) {
-        $("btnNuevaAtencion").addEventListener("click", function () {
-            nuevaAtencion();
-        });
-    }
-
-    if ($("btnQuickAttention")) {
-        $("btnQuickAttention").addEventListener("click", function () {
-            nuevaAtencion();
-        });
-    }
-
-    if ($("btnQuickFollow")) {
-        $("btnQuickFollow").addEventListener("click", function () {
-            document.querySelector('[data-section="seguimientos"]')?.click();
-        });
-    }
-
-    if ($("btnVerAtenciones")) {
-        $("btnVerAtenciones").addEventListener("click", function () {
-            document.querySelector('[data-section="atenciones"]')?.click();
-        });
-    }
-
-    if ($("btnVerSeguimientos")) {
-        $("btnVerSeguimientos").addEventListener("click", function () {
-            document.querySelector('[data-section="seguimientos"]')?.click();
-        });
-    }
-
-
-    /* =========================
-       CERRAR MODALES
-    ========================= */
-
-    document.querySelectorAll("[data-close]").forEach(function (boton) {
-
-        boton.addEventListener("click", function () {
-            cerrarModal(boton.getAttribute("data-close"));
+        boton.addEventListener("click", () => {
+            cerrarModal(boton.dataset.closeModal);
         });
 
     });
 
-    document.querySelectorAll(".modal").forEach(function (modal) {
+    document.querySelectorAll(".modal").forEach(modal => {
 
-        modal.addEventListener("click", function (e) {
+        modal.addEventListener("click", e => {
 
             if (e.target === modal) {
                 cerrarModal(modal.id);
@@ -182,86 +158,67 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
-    /* =========================
+    /* =====================================================
        ESTUDIANTES
-    ========================= */
+    ===================================================== */
 
-    function limpiarEstudiante() {
+    function abrirNuevoEstudiante() {
 
-        if ($("form-estudiante")) {
-            $("form-estudiante").reset();
-        }
+        $("formEstudiante").reset();
 
-        if ($("id-estudiante")) {
-            $("id-estudiante").value = "";
-        }
+        abrirModal("modalEstudiante");
 
-        if ($("titulo-modal-estudiante")) {
-            $("titulo-modal-estudiante").textContent = "Nuevo estudiante";
-        }
-
-    }
-
-    function nuevoEstudiante() {
-
-        limpiarEstudiante();
-
-        abrirModal("modal-estudiante");
-
-        setTimeout(function () {
-            if ($("nombre-estudiante")) {
-                $("nombre-estudiante").focus();
-            }
+        setTimeout(() => {
+            $("estudiante-nombre")?.focus();
         }, 100);
-
     }
 
+    $("btnAgregarEstudiante")?.addEventListener(
+        "click",
+        abrirNuevoEstudiante
+    );
 
-    $("form-estudiante")?.addEventListener("submit", function (e) {
+    $("btnQuickStudent")?.addEventListener(
+        "click",
+        abrirNuevoEstudiante
+    );
+
+
+    $("formEstudiante")?.addEventListener("submit", e => {
 
         e.preventDefault();
 
-        const nombre = $("nombre-estudiante").value.trim();
-        const curso = $("curso-estudiante").value.trim();
-        const edad = $("edad-estudiante").value.trim();
-        const observacion = $("observacion-estudiante").value.trim();
-        const id = $("id-estudiante").value;
+        const nombre = $("estudiante-nombre").value.trim();
+        const apellido = $("estudiante-apellido").value.trim();
+        const curso = $("estudiante-curso").value.trim();
+        const identificacion = $("estudiante-identificacion").value.trim();
+        const contacto = $("estudiante-contacto").value.trim();
+        const observaciones = $("estudiante-observaciones").value.trim();
 
-        if (!nombre || !curso) {
-            mostrarToast("Completa nombre y curso.");
+        if (!nombre || !apellido) {
+            toast("Escribe el nombre y apellido.");
             return;
         }
 
-        if (id) {
+        estudiantes.push({
+            id: Date.now().toString(),
+            nombre,
+            apellido,
+            curso,
+            identificacion,
+            contacto,
+            observaciones,
+            creado: new Date().toISOString()
+        });
 
-            const estudiante = estudiantes.find(x => x.id === id);
+        guardarDatos();
 
-            if (estudiante) {
-                estudiante.nombre = nombre;
-                estudiante.curso = curso;
-                estudiante.edad = edad;
-                estudiante.observacion = observacion;
-            }
+        cerrarModal("modalEstudiante");
 
-            mostrarToast("Estudiante actualizado.");
-
-        } else {
-
-            estudiantes.push({
-                id: Date.now().toString(),
-                nombre,
-                curso,
-                edad,
-                observacion
-            });
-
-            mostrarToast("Estudiante registrado.");
-        }
-
-        guardar();
-        cerrarModal("modal-estudiante");
         renderEstudiantes();
         actualizarDashboard();
+
+        toast("Estudiante guardado correctamente.");
 
     });
 
@@ -274,135 +231,96 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const texto = filtro.toLowerCase();
 
-        const filtrados = estudiantes.filter(function (e) {
-            return e.nombre.toLowerCase().includes(texto);
+        const datos = estudiantes.filter(e => {
+
+            const completo =
+                `${e.nombre} ${e.apellido} ${e.curso}`.toLowerCase();
+
+            return completo.includes(texto);
+
         });
 
-        if ($("cantidad-estudiantes")) {
-            $("cantidad-estudiantes").textContent =
-                filtrados.length + " estudiante" +
-                (filtrados.length === 1 ? "" : "s");
-        }
-
-        if (!filtrados.length) {
+        if (!datos.length) {
 
             lista.innerHTML = `
                 <div class="empty-state">
-                    <strong>No hay estudiantes registrados</strong>
-                    <p>Agrega un estudiante para comenzar.</p>
+                    <div class="empty-state-title">
+                        No hay estudiantes
+                    </div>
+                    <div class="empty-state-text">
+                        Registra un estudiante para comenzar.
+                    </div>
                 </div>
             `;
 
             return;
         }
 
-        lista.innerHTML = filtrados.map(function (e) {
+        lista.innerHTML = datos.map(e => `
 
-            return `
-                <article class="student-card">
+            <div class="student-card">
 
-                    <div class="student-top">
+                <div class="student-top">
 
-                        <div>
-                            <h3 class="student-name">
-                                ${escapar(e.nombre)}
-                            </h3>
-
-                            <div class="student-course">
-                                ${escapar(e.curso)}
-                            </div>
+                    <div>
+                        <div class="student-name">
+                            ${escapar(e.nombre)} ${escapar(e.apellido)}
                         </div>
 
+                        <div class="student-course">
+                            ${escapar(e.curso || "Curso no registrado")}
+                        </div>
                     </div>
 
-                    <div class="student-meta">
-                        <span>
-                            ${e.edad ? "Edad: " + escapar(e.edad) : "Edad no registrada"}
-                        </span>
+                </div>
+
+                <div class="student-meta">
+
+                    <div>
+                        ${e.identificacion
+                            ? "Identificación: " + escapar(e.identificacion)
+                            : "Sin identificación"}
                     </div>
 
-                    <div class="card-actions">
-
-                        <button
-                            type="button"
-                            class="btn btn-secondary editar-estudiante"
-                            data-id="${e.id}">
-                            Editar
-                        </button>
-
-                        <button
-                            type="button"
-                            class="btn btn-secondary ver-estudiante"
-                            data-id="${e.id}">
-                            Ver ficha
-                        </button>
-
-                        <button
-                            type="button"
-                            class="btn btn-secondary eliminar-estudiante"
-                            data-id="${e.id}">
-                            Eliminar
-                        </button>
-
+                    <div>
+                        ${e.contacto
+                            ? "Contacto: " + escapar(e.contacto)
+                            : "Sin contacto"}
                     </div>
 
-                </article>
-            `;
+                </div>
 
-        }).join("");
+                <div class="card-actions">
+
+                    <button
+                        class="btn btn-secondary btn-ver-estudiante"
+                        data-id="${e.id}">
+                        Ver ficha
+                    </button>
+
+                    <button
+                        class="btn btn-secondary btn-eliminar-estudiante"
+                        data-id="${e.id}">
+                        Eliminar
+                    </button>
+
+                </div>
+
+            </div>
+
+        `).join("");
 
     }
 
 
-    document.addEventListener("click", function (e) {
-
-        const editar = e.target.closest(".editar-estudiante");
-
-        if (editar) {
-
-            const estudiante = estudiantes.find(
-                x => x.id === editar.dataset.id
-            );
-
-            if (!estudiante) return;
-
-            $("id-estudiante").value = estudiante.id;
-            $("nombre-estudiante").value = estudiante.nombre;
-            $("curso-estudiante").value = estudiante.curso;
-            $("edad-estudiante").value = estudiante.edad || "";
-            $("observacion-estudiante").value =
-                estudiante.observacion || "";
-
-            $("titulo-modal-estudiante").textContent =
-                "Editar estudiante";
-
-            abrirModal("modal-estudiante");
-
-            return;
-        }
+    $("buscar-estudiante")?.addEventListener("input", e => {
+        renderEstudiantes(e.target.value);
+    });
 
 
-        const eliminar = e.target.closest(".eliminar-estudiante");
+    document.addEventListener("click", e => {
 
-        if (eliminar) {
-
-            if (!confirm("¿Eliminar este estudiante?")) return;
-
-            estudiantes = estudiantes.filter(
-                x => x.id !== eliminar.dataset.id
-            );
-
-            guardar();
-            renderEstudiantes();
-            actualizarDashboard();
-
-            mostrarToast("Estudiante eliminado.");
-
-            return;
-        }
-
-
-        const ver = e.target.closest(".ver-estudiante");
+        const ver = e.target.closest(".btn-ver-estudiante");
 
         if (ver) {
 
@@ -412,402 +330,240 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!estudiante) return;
 
-            if ($("perfil-nombre")) {
-                $("perfil-nombre").textContent =
-                    estudiante.nombre;
-            }
-
-            if ($("contenido-perfil")) {
-
-                const total = atenciones.filter(
-                    x => x.estudianteId === estudiante.id
-                ).length;
-
-                $("contenido-perfil").innerHTML = `
-                    <div style="padding:22px">
-
-                        <p>
-                            <strong>Curso:</strong>
-                            ${escapar(estudiante.curso)}
-                        </p>
-
-                        <p style="margin-top:10px">
-                            <strong>Edad:</strong>
-                            ${escapar(estudiante.edad || "No registrada")}
-                        </p>
-
-                        <p style="margin-top:10px">
-                            <strong>Observaciones:</strong>
-                            ${escapar(estudiante.observacion || "Sin observaciones")}
-                        </p>
-
-                        <p style="margin-top:10px">
-                            <strong>Atenciones:</strong>
-                            ${total}
-                        </p>
-
-                    </div>
-                `;
-
-            }
-
-            abrirModal("modal-perfil");
-
-        }
-
-    });
-
-
-    /* =========================
-       BUSCAR ESTUDIANTE
-    ========================= */
-
-    $("buscar-estudiante")?.addEventListener("input", function () {
-        renderEstudiantes(this.value);
-    });
-
-
-    /* =========================
-       ATENCIONES
-    ========================= */
-
-    function nuevaAtencion() {
-
-        if (!estudiantes.length) {
-
-            mostrarToast("Primero registra un estudiante.");
-
-            document.querySelector(
-                '[data-section="estudiantes"]'
-            )?.click();
+            alert(
+                `Estudiante\n\n` +
+                `${estudiante.nombre} ${estudiante.apellido}\n` +
+                `Curso: ${estudiante.curso || "No registrado"}\n` +
+                `Identificación: ${estudiante.identificacion || "No registrada"}\n` +
+                `Contacto: ${estudiante.contacto || "No registrado"}\n\n` +
+                `Observaciones:\n${estudiante.observaciones || "Sin observaciones"}`
+            );
 
             return;
         }
 
-        $("form-atencion")?.reset();
+        const eliminar = e.target.closest(".btn-eliminar-estudiante");
 
-        $("id-atencion").value = "";
+        if (eliminar) {
 
-        $("fecha-atencion").value = fechaHoy();
+            const estudiante = estudiantes.find(
+                x => x.id === eliminar.dataset.id
+            );
 
-        $("titulo-modal-atencion").textContent =
-            "Nueva atención";
+            if (!estudiante) return;
+
+            if (!confirm(
+                `¿Eliminar a ${estudiante.nombre} ${estudiante.apellido}?`
+            )) return;
+
+            estudiantes = estudiantes.filter(
+                x => x.id !== eliminar.dataset.id
+            );
+
+            guardarDatos();
+            renderEstudiantes();
+            actualizarDashboard();
+
+            toast("Estudiante eliminado.");
+
+        }
+
+    });
+
+
+    /* =====================================================
+       ATENCIONES
+    ===================================================== */
+
+    function prepararNuevaAtencion() {
+
+        if (!estudiantes.length) {
+
+            toast("Primero debes registrar un estudiante.");
+
+            document
+                .querySelector('[data-section="estudiantes"]')
+                ?.click();
+
+            return;
+        }
+
+        $("formAtencion").reset();
+
+        $("atencion-fecha").value = hoy();
 
         const select = $("atencion-estudiante");
 
         select.innerHTML =
-            '<option value="">Selecciona un estudiante</option>';
+            `<option value="">Seleccionar estudiante</option>`;
 
-        estudiantes.forEach(function (e) {
+        estudiantes.forEach(e => {
 
             const option = document.createElement("option");
 
             option.value = e.id;
 
             option.textContent =
-                e.nombre + " — " + e.curso;
+                `${e.nombre} ${e.apellido} — ${e.curso || ""}`;
 
             select.appendChild(option);
 
         });
 
-        abrirModal("modal-atencion");
+        abrirModal("modalAtencion");
 
     }
 
 
-    $("form-atencion")?.addEventListener("submit", function (e) {
+    $("btnAgregarAtencion")?.addEventListener(
+        "click",
+        prepararNuevaAtencion
+    );
+
+    $("btnQuickAttention")?.addEventListener(
+        "click",
+        prepararNuevaAtencion
+    );
+
+
+    $("formAtencion")?.addEventListener("submit", e => {
 
         e.preventDefault();
 
         const estudianteId = $("atencion-estudiante").value;
-        const fecha = $("fecha-atencion").value;
-        const motivo = $("motivo-atencion").value.trim();
-        const detalle = $("detalle-atencion").value.trim();
 
-        if (!estudianteId || !fecha || !motivo || !detalle) {
-
-            mostrarToast("Completa los campos obligatorios.");
-
+        if (!estudianteId) {
+            toast("Selecciona un estudiante.");
             return;
         }
 
-        const datos = {
+        const atencion = {
 
-            id:
-                $("id-atencion").value ||
-                Date.now().toString(),
+            id: Date.now().toString(),
 
             estudianteId,
-            fecha,
-            motivo,
-            detalle,
 
-            observaciones:
-                $("observaciones-atencion").value.trim(),
+            tipo: $("atencion-tipo").value,
 
-            acuerdos:
-                $("acuerdos-atencion").value.trim(),
+            fecha: $("atencion-fecha").value || hoy(),
 
-            seguimiento:
-                $("seguimiento-atencion").value
+            motivo: $("atencion-motivo").value.trim(),
+
+            descripcion:
+                $("atencion-descripcion").value.trim(),
+
+            creado: new Date().toISOString()
 
         };
 
-        const indice = atenciones.findIndex(
-            x => x.id === datos.id
-        );
+        atenciones.push(atencion);
 
-        if (indice >= 0) {
+        guardarDatos();
 
-            atenciones[indice] = datos;
-
-            mostrarToast("Atención actualizada.");
-
-        } else {
-
-            atenciones.push(datos);
-
-            mostrarToast("Atención registrada.");
-
-        }
-
-        guardar();
-
-        cerrarModal("modal-atencion");
+        cerrarModal("modalAtencion");
 
         renderAtenciones();
         renderSeguimientos();
         actualizarDashboard();
 
+        toast("Atención guardada correctamente.");
+
     });
 
 
-    function renderAtenciones() {
+    function renderAtenciones(filtro = "") {
 
         const lista = $("lista-atenciones");
 
         if (!lista) return;
 
-        if (!atenciones.length) {
+        const texto = filtro.toLowerCase();
 
-            lista.innerHTML = `
-                <div class="empty-state">
-                    <strong>No hay atenciones registradas</strong>
-                    <p>Registra una atención para comenzar.</p>
-                </div>
-            `;
-
-            return;
-        }
-
-        lista.innerHTML = atenciones
-            .slice()
-            .reverse()
-            .map(function (a) {
+        const datos = atenciones
+            .filter(a => {
 
                 const estudiante =
                     estudiantes.find(
-                        x => x.id === a.estudianteId
+                        e => e.id === a.estudianteId
                     );
 
-                return `
-                    <article class="attention-card">
+                const nombre =
+                    estudiante
+                        ? `${estudiante.nombre} ${estudiante.apellido}`
+                        : "";
 
-                        <div class="attention-top">
+                return (
+                    nombre.toLowerCase().includes(texto) ||
+                    a.motivo.toLowerCase().includes(texto) ||
+                    a.tipo.toLowerCase().includes(texto)
+                );
 
-                            <div class="attention-name">
-                                ${escapar(
-                                    estudiante
-                                        ? estudiante.nombre
-                                        : "Estudiante"
-                                )}
-                            </div>
-
-                            <div class="attention-date">
-                                ${a.fecha}
-                            </div>
-
-                        </div>
-
-                        <div class="attention-motive">
-                            ${escapar(a.motivo)}
-                        </div>
-
-                        <div class="attention-detail">
-                            ${escapar(a.detalle)}
-                        </div>
-
-                        <div class="card-actions">
-
-                            <button
-                                type="button"
-                                class="btn btn-secondary editar-atencion"
-                                data-id="${a.id}">
-                                Editar
-                            </button>
-
-                            <button
-                                type="button"
-                                class="btn btn-secondary eliminar-atencion"
-                                data-id="${a.id}">
-                                Eliminar
-                            </button>
-
-                        </div>
-
-                    </article>
-                `;
-
-            }).join("");
-
-    }
-
-
-    document.addEventListener("click", function (e) {
-
-        const editar = e.target.closest(".editar-atencion");
-
-        if (editar) {
-
-            const a = atenciones.find(
-                x => x.id === editar.dataset.id
-            );
-
-            if (!a) return;
-
-            nuevaAtencion();
-
-            $("id-atencion").value = a.id;
-            $("atencion-estudiante").value = a.estudianteId;
-            $("fecha-atencion").value = a.fecha;
-            $("motivo-atencion").value = a.motivo;
-            $("detalle-atencion").value = a.detalle;
-            $("observaciones-atencion").value =
-                a.observaciones || "";
-            $("acuerdos-atencion").value =
-                a.acuerdos || "";
-            $("seguimiento-atencion").value =
-                a.seguimiento || "";
-
-            $("titulo-modal-atencion").textContent =
-                "Editar atención";
-
-            return;
-        }
-
-
-        const eliminar = e.target.closest(".eliminar-atencion");
-
-        if (eliminar) {
-
-            if (!confirm("¿Eliminar esta atención?")) return;
-
-            atenciones = atenciones.filter(
-                x => x.id !== eliminar.dataset.id
-            );
-
-            guardar();
-            renderAtenciones();
-            renderSeguimientos();
-            actualizarDashboard();
-
-            mostrarToast("Atención eliminada.");
-
-        }
-
-    });
-
-
-    /* =========================
-       SEGUIMIENTOS
-    ========================= */
-
-    document.querySelectorAll(".follow-tab").forEach(function (tab) {
-
-        tab.addEventListener("click", function () {
-
-            document.querySelectorAll(".follow-tab")
-                .forEach(x => x.classList.remove("active"));
-
-            tab.classList.add("active");
-
-            renderSeguimientos(
-                tab.getAttribute("data-filter")
-            );
-
-        });
-
-    });
-
-
-    function renderSeguimientos(filtro = "todos") {
-
-        const lista = $("lista-seguimientos");
-
-        if (!lista) return;
-
-        let datos = atenciones.filter(
-            x => x.seguimiento
-        );
-
-        const hoy = fechaHoy();
-
-        if (filtro === "pendientes") {
-            datos = datos.filter(
-                x => x.seguimiento >= hoy
-            );
-        }
-
-        if (filtro === "vencidos") {
-            datos = datos.filter(
-                x => x.seguimiento < hoy
-            );
-        }
+            })
+            .reverse();
 
         if (!datos.length) {
 
             lista.innerHTML = `
                 <div class="empty-state">
-                    <strong>No hay seguimientos</strong>
-                    <p>No existen registros para este filtro.</p>
+                    <div class="empty-state-title">
+                        No hay atenciones
+                    </div>
+                    <div class="empty-state-text">
+                        Registra una nueva atención para comenzar.
+                    </div>
                 </div>
             `;
 
             return;
         }
 
-        lista.innerHTML = datos.map(function (a) {
+        lista.innerHTML = datos.map(a => {
 
             const estudiante =
                 estudiantes.find(
-                    x => x.id === a.estudianteId
+                    e => e.id === a.estudianteId
                 );
 
+            const nombre = estudiante
+                ? `${estudiante.nombre} ${estudiante.apellido}`
+                : "Estudiante eliminado";
+
             return `
-                <article class="follow-card">
 
-                    <div class="follow-main">
+                <div class="attention-card">
 
-                        <strong>
-                            ${escapar(
-                                estudiante
-                                    ? estudiante.nombre
-                                    : "Estudiante"
-                            )}
-                        </strong>
+                    <div class="attention-top">
 
-                        <span>
-                            ${escapar(a.motivo)}
-                        </span>
+                        <div class="attention-name">
+                            ${escapar(nombre)}
+                        </div>
+
+                        <div class="attention-date">
+                            ${escapar(a.fecha)}
+                        </div>
 
                     </div>
 
-                    <span class="follow-status pending">
-                        ${a.seguimiento}
-                    </span>
+                    <div class="attention-motive">
+                        ${escapar(a.tipo)} · ${escapar(a.motivo || "Sin motivo")}
+                    </div>
 
-                </article>
+                    <div class="attention-detail">
+                        ${escapar(a.descripcion || "Sin descripción")}
+                    </div>
+
+                    <div class="card-actions">
+
+                        <button
+                            class="btn btn-secondary btn-eliminar-atencion"
+                            data-id="${a.id}">
+                            Eliminar
+                        </button>
+
+                    </div>
+
+                </div>
+
             `;
 
         }).join("");
@@ -815,9 +571,420 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    /* =========================
+    $("buscar-atencion")?.addEventListener("input", e => {
+        renderAtenciones(e.target.value);
+    });
+
+
+    document.addEventListener("click", e => {
+
+        const eliminar =
+            e.target.closest(".btn-eliminar-atencion");
+
+        if (!eliminar) return;
+
+        if (!confirm("¿Eliminar esta atención?")) return;
+
+        atenciones = atenciones.filter(
+            x => x.id !== eliminar.dataset.id
+        );
+
+        guardarDatos();
+
+        renderAtenciones();
+        renderSeguimientos();
+        actualizarDashboard();
+
+        toast("Atención eliminada.");
+
+    });
+
+
+    /* =====================================================
+       SEGUIMIENTOS
+    ===================================================== */
+
+    function renderSeguimientos() {
+
+        const lista = $("lista-seguimientos");
+
+        if (!lista) return;
+
+        const filtro =
+            $("filtro-seguimiento")?.value || "todos";
+
+        let datos = atenciones.slice();
+
+        if (filtro === "pendientes") {
+            datos = datos.filter(a => a.tipo === "Seguimiento");
+        }
+
+        if (filtro === "realizados") {
+            datos = datos.filter(a => a.tipo !== "Seguimiento");
+        }
+
+        if (filtro === "vencidos") {
+            datos = [];
+        }
+
+        if (!datos.length) {
+
+            lista.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-title">
+                        No hay seguimientos
+                    </div>
+                    <div class="empty-state-text">
+                        No existen registros para este filtro.
+                    </div>
+                </div>
+            `;
+
+            return;
+        }
+
+        lista.innerHTML = datos.map(a => {
+
+            const estudiante =
+                estudiantes.find(
+                    e => e.id === a.estudianteId
+                );
+
+            const nombre = estudiante
+                ? `${estudiante.nombre} ${estudiante.apellido}`
+                : "Estudiante";
+
+            return `
+                <div class="follow-card">
+
+                    <div class="follow-main">
+
+                        <strong>
+                            ${escapar(nombre)}
+                        </strong>
+
+                        <span>
+                            ${escapar(a.motivo || a.tipo)}
+                        </span>
+
+                    </div>
+
+                    <span class="follow-status pending">
+                        ${escapar(a.fecha)}
+                    </span>
+
+                </div>
+            `;
+
+        }).join("");
+
+    }
+
+
+    $("filtro-seguimiento")?.addEventListener(
+        "change",
+        renderSeguimientos
+    );
+
+
+    $("btnQuickFollow")?.addEventListener("click", () => {
+
+        document
+            .querySelector('[data-section="seguimientos"]')
+            ?.click();
+
+    });
+
+
+    /* =====================================================
+       NOTAS
+    ===================================================== */
+
+    function prepararNotas() {
+
+        const select = $("nota-estudiante");
+
+        if (!select) return;
+
+        select.innerHTML =
+            `<option value="">Seleccionar estudiante</option>`;
+
+        estudiantes.forEach(e => {
+
+            const option = document.createElement("option");
+
+            option.value = e.id;
+
+            option.textContent =
+                `${e.nombre} ${e.apellido}`;
+
+            select.appendChild(option);
+
+        });
+
+        renderNotas();
+
+    }
+
+
+    function limpiarEditorNota() {
+
+        notaActual = null;
+
+        $("nota-estudiante").value = "";
+        $("nota-titulo").value = "";
+        $("nota-fecha").value = hoy();
+        $("nota-contenido").innerHTML = "";
+
+        $("estado-nota").textContent = "Sin cambios";
+
+        actualizarContador();
+
+    }
+
+
+    $("btnNuevaNota")?.addEventListener("click", () => {
+
+        limpiarEditorNota();
+
+    });
+
+
+    $("btnGuardarNota")?.addEventListener("click", () => {
+
+        const estudianteId = $("nota-estudiante").value;
+        const titulo = $("nota-titulo").value.trim();
+        const fecha = $("nota-fecha").value;
+        const contenido = $("nota-contenido").innerHTML;
+
+        if (!estudianteId) {
+            toast("Selecciona un estudiante.");
+            return;
+        }
+
+        if (!titulo) {
+            toast("Escribe un título.");
+            return;
+        }
+
+        if (!contenido.trim()) {
+            toast("Escribe el contenido de la nota.");
+            return;
+        }
+
+        const nota = {
+
+            id: notaActual || Date.now().toString(),
+
+            estudianteId,
+
+            titulo,
+
+            fecha: fecha || hoy(),
+
+            contenido,
+
+            actualizado:
+                new Date().toISOString()
+
+        };
+
+        const indice =
+            notas.findIndex(n => n.id === nota.id);
+
+        if (indice >= 0) {
+            notas[indice] = nota;
+        } else {
+            notas.push(nota);
+        }
+
+        guardarDatos();
+
+        notaActual = nota.id;
+
+        renderNotas();
+        actualizarDashboard();
+
+        $("estado-nota").textContent =
+            "Guardado correctamente";
+
+        toast("Nota guardada.");
+
+    });
+
+
+    $("btnEliminarNota")?.addEventListener("click", () => {
+
+        if (!notaActual) {
+            limpiarEditorNota();
+            return;
+        }
+
+        if (!confirm("¿Eliminar esta nota?")) return;
+
+        notas = notas.filter(n => n.id !== notaActual);
+
+        guardarDatos();
+
+        limpiarEditorNota();
+        renderNotas();
+        actualizarDashboard();
+
+        toast("Nota eliminada.");
+
+    });
+
+
+    function renderNotas() {
+
+        const lista = $("lista-notas");
+
+        if (!lista) return;
+
+        $("cantidad-notas").textContent = notas.length;
+
+        if (!notas.length) {
+
+            lista.innerHTML = `
+                <div class="empty-state">
+
+                    <div class="empty-state-title">
+                        No hay notas
+                    </div>
+
+                    <div class="empty-state-text">
+                        Crea una nueva nota para comenzar.
+                    </div>
+
+                </div>
+            `;
+
+            return;
+        }
+
+        lista.innerHTML = notas
+            .slice()
+            .reverse()
+            .map(n => {
+
+                const estudiante =
+                    estudiantes.find(
+                        e => e.id === n.estudianteId
+                    );
+
+                const nombre = estudiante
+                    ? `${estudiante.nombre} ${estudiante.apellido}`
+                    : "Estudiante";
+
+                return `
+
+                    <button
+                        type="button"
+                        class="note-item"
+                        data-id="${n.id}">
+
+                        <strong>
+                            ${escapar(n.titulo)}
+                        </strong>
+
+                        <span>
+                            ${escapar(nombre)}
+                        </span>
+
+                        <small>
+                            ${escapar(n.fecha)}
+                        </small>
+
+                    </button>
+
+                `;
+
+            }).join("");
+
+    }
+
+
+    document.addEventListener("click", e => {
+
+        const nota = e.target.closest(".note-item");
+
+        if (!nota) return;
+
+        const datos =
+            notas.find(n => n.id === nota.dataset.id);
+
+        if (!datos) return;
+
+        notaActual = datos.id;
+
+        $("nota-estudiante").value =
+            datos.estudianteId;
+
+        $("nota-titulo").value =
+            datos.titulo;
+
+        $("nota-fecha").value =
+            datos.fecha;
+
+        $("nota-contenido").innerHTML =
+            datos.contenido;
+
+        $("estado-nota").textContent =
+            "Nota cargada";
+
+        actualizarContador();
+
+    });
+
+
+    document.querySelectorAll(".editor-button").forEach(boton => {
+
+        boton.addEventListener("click", () => {
+
+            const comando = boton.dataset.command;
+
+            document.execCommand(comando, false, null);
+
+            $("nota-contenido").focus();
+
+            $("estado-nota").textContent =
+                "Cambios sin guardar";
+
+        });
+
+    });
+
+
+    $("nota-contenido")?.addEventListener(
+        "input",
+        actualizarContador
+    );
+
+
+    function actualizarContador() {
+
+        const texto =
+            $("nota-contenido")?.innerText.trim() || "";
+
+        const palabras =
+            texto ? texto.split(/\s+/).length : 0;
+
+        if ($("contador-palabras")) {
+            $("contador-palabras").textContent =
+                palabras;
+        }
+
+        if ($("estado-nota")) {
+            $("estado-nota").textContent =
+                "Cambios sin guardar";
+        }
+
+    }
+
+
+    /* =====================================================
        DASHBOARD
-    ========================= */
+    ===================================================== */
 
     function actualizarDashboard() {
 
@@ -833,46 +1000,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if ($("total-seguimientos")) {
             $("total-seguimientos").textContent =
-                atenciones.filter(x => x.seguimiento).length;
-        }
-
-        if ($("total-hoy")) {
-            $("total-hoy").textContent =
                 atenciones.filter(
-                    x => x.fecha === fechaHoy()
+                    a => a.tipo === "Seguimiento"
                 ).length;
         }
 
-    }
-
-
-    /* =========================
-       FECHA
-    ========================= */
-
-    if ($("date")) {
-
-        $("date").textContent =
-            new Date().toLocaleDateString(
-                "es-CO",
-                {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric"
-                }
-            );
+        if ($("total-notas")) {
+            $("total-notas").textContent =
+                notas.length;
+        }
 
     }
 
 
-    /* =========================
-       INICIO
-    ========================= */
+    /* =====================================================
+       INICIALIZACIÓN
+    ===================================================== */
 
     actualizarDashboard();
     renderEstudiantes();
     renderAtenciones();
     renderSeguimientos();
+    prepararNotas();
 
 });
