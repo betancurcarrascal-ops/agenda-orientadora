@@ -1,1238 +1,662 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    /* =========================================================
-       DATOS
-    ========================================================= */
+    let estudiantes = JSON.parse(localStorage.getItem("estudiantes") || "[]");
+    let atenciones = JSON.parse(localStorage.getItem("atenciones") || "[]");
 
-    let estudiantes = cargar("estudiantes");
-    let atenciones = cargar("atenciones");
-
-    let filtroSeguimientos = "todos";
-
-
-    /* =========================================================
-       INICIO
-    ========================================================= */
-
-    iniciar();
-
-    function iniciar() {
-
-        configurarNavegacion();
-        configurarBotones();
-        configurarModales();
-        configurarFormularios();
-        configurarBusqueda();
-        configurarSeguimientos();
-
-        actualizarTodo();
-        actualizarFecha();
-
+    function guardar() {
+        localStorage.setItem("estudiantes", JSON.stringify(estudiantes));
+        localStorage.setItem("atenciones", JSON.stringify(atenciones));
     }
 
-
-    /* =========================================================
-       LOCAL STORAGE
-    ========================================================= */
-
-    function cargar(nombre) {
-
-        try {
-
-            const datos = localStorage.getItem(nombre);
-
-            if (!datos) {
-                return [];
-            }
-
-            const resultado = JSON.parse(datos);
-
-            return Array.isArray(resultado) ? resultado : [];
-
-        } catch (error) {
-
-            console.error("Error cargando " + nombre, error);
-
-            return [];
-
-        }
-
+    function $(id) {
+        return document.getElementById(id);
     }
 
-
-    function guardarDatos() {
-
-        localStorage.setItem(
-            "estudiantes",
-            JSON.stringify(estudiantes)
-        );
-
-        localStorage.setItem(
-            "atenciones",
-            JSON.stringify(atenciones)
-        );
-
+    function fechaHoy() {
+        const d = new Date();
+        return d.getFullYear() + "-" +
+            String(d.getMonth() + 1).padStart(2, "0") + "-" +
+            String(d.getDate()).padStart(2, "0");
     }
 
+    function escapar(texto) {
+        return String(texto || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 
-    /* =========================================================
+    function mostrarToast(texto) {
+        const toast = $("toast");
+        if (!toast) return;
+
+        toast.textContent = texto;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 2500);
+    }
+
+    /* =========================
        NAVEGACIÓN
-    ========================================================= */
+    ========================= */
 
-    function configurarNavegacion() {
+    document.querySelectorAll(".nav-item").forEach(function (boton) {
 
-        document.addEventListener("click", function (evento) {
+        boton.addEventListener("click", function (e) {
 
-            const boton = evento.target.closest(".nav-item");
+            e.preventDefault();
 
-            if (!boton) {
-                return;
-            }
+            const id = boton.getAttribute("data-section");
 
-            evento.preventDefault();
-            evento.stopPropagation();
-
-            const seccion = boton.getAttribute("data-section");
-
-            if (seccion) {
-                mostrarSeccion(seccion);
-            }
-
-        });
-
-    }
-
-
-    function mostrarSeccion(id) {
-
-        document.querySelectorAll(".section").forEach(function (seccion) {
-
-            seccion.classList.remove("active");
-
-        });
-
-
-        const objetivo = document.getElementById(id);
-
-        if (objetivo) {
-
-            objetivo.classList.add("active");
-
-        }
-
-
-        document.querySelectorAll(".nav-item").forEach(function (boton) {
-
-            boton.classList.remove("active");
-
-            if (boton.getAttribute("data-section") === id) {
-
-                boton.classList.add("active");
-
-            }
-
-        });
-
-
-        const titulos = {
-
-            inicio: [
-                "Inicio",
-                "Resumen de la orientación escolar"
-            ],
-
-            estudiantes: [
-                "Estudiantes",
-                "Directorio y fichas de estudiantes"
-            ],
-
-            atenciones: [
-                "Atenciones",
-                "Historial de encuentros y situaciones atendidas"
-            ],
-
-            seguimientos: [
-                "Seguimientos",
-                "Control de compromisos y próximos contactos"
-            ]
-
-        };
-
-
-        const info = titulos[id] || titulos.inicio;
-
-
-        const titulo = document.getElementById("page-title");
-
-        const subtitulo = document.getElementById("page-subtitle");
-
-
-        if (titulo) {
-
-            titulo.textContent = info[0];
-
-        }
-
-
-        if (subtitulo) {
-
-            subtitulo.textContent = info[1];
-
-        }
-
-
-        if (id === "estudiantes") {
-
-            renderEstudiantes();
-
-        }
-
-
-        if (id === "atenciones") {
-
-            renderAtenciones();
-
-        }
-
-
-        if (id === "seguimientos") {
-
-            renderSeguimientos();
-
-        }
-
-    }
-
-
-    /* =========================================================
-       BOTONES
-    ========================================================= */
-
-    function configurarBotones() {
-
-        document.addEventListener("click", function (evento) {
-
-            const boton = evento.target.closest("button");
-
-            if (!boton) {
-                return;
-            }
-
-
-            const id = boton.id;
-
-
-            if (id === "btnNuevaAtencion") {
-
-                evento.preventDefault();
-
-                abrirModalAtencion();
-
-                return;
-
-            }
-
-
-            if (id === "btnQuickAttention") {
-
-                evento.preventDefault();
-
-                abrirModalAtencion();
-
-                return;
-
-            }
-
-
-            if (id === "btnAgregarEstudiante") {
-
-                evento.preventDefault();
-
-                abrirModalEstudiante();
-
-                return;
-
-            }
-
-
-            if (id === "btnAgregarAtencion") {
-
-                evento.preventDefault();
-
-                abrirModalAtencion();
-
-                return;
-
-            }
-
-
-            if (id === "btnQuickStudent") {
-
-                evento.preventDefault();
-
-                abrirModalEstudiante();
-
-                return;
-
-            }
-
-
-            if (id === "btnQuickFollow") {
-
-                evento.preventDefault();
-
-                mostrarSeccion("seguimientos");
-
-                return;
-
-            }
-
-
-            if (id === "btnVerAtenciones") {
-
-                evento.preventDefault();
-
-                mostrarSeccion("atenciones");
-
-                return;
-
-            }
-
-
-            if (id === "btnVerSeguimientos") {
-
-                evento.preventDefault();
-
-                mostrarSeccion("seguimientos");
-
-                return;
-
-            }
-
-        });
-
-    }
-
-
-    /* =========================================================
-       MODALES
-    ========================================================= */
-
-    function configurarModales() {
-
-        document.addEventListener("click", function (evento) {
-
-            const cerrar = evento.target.closest("[data-close]");
-
-            if (cerrar) {
-
-                evento.preventDefault();
-
-                cerrarModal(
-                    cerrar.getAttribute("data-close")
-                );
-
-                return;
-
-            }
-
-
-            const modal = evento.target.closest(".modal");
-
-            if (
-                modal &&
-                evento.target === modal
-            ) {
-
-                cerrarModal(modal.id);
-
-            }
-
-        });
-
-
-        document.addEventListener("keydown", function (evento) {
-
-            if (evento.key !== "Escape") {
-                return;
-            }
-
-            document.querySelectorAll(".modal.active").forEach(function (modal) {
-
-                cerrarModal(modal.id);
-
+            document.querySelectorAll(".section").forEach(function (s) {
+                s.classList.remove("active");
             });
 
+            const seccion = $(id);
+
+            if (seccion) {
+                seccion.classList.add("active");
+            }
+
+            document.querySelectorAll(".nav-item").forEach(function (b) {
+                b.classList.remove("active");
+            });
+
+            boton.classList.add("active");
+
+            if (id === "estudiantes") renderEstudiantes();
+            if (id === "atenciones") renderAtenciones();
+            if (id === "seguimientos") renderSeguimientos();
+
+            const titulos = {
+                inicio: ["Inicio", "Resumen de la orientación escolar"],
+                estudiantes: ["Estudiantes", "Directorio y fichas de estudiantes"],
+                atenciones: ["Atenciones", "Historial de encuentros y situaciones atendidas"],
+                seguimientos: ["Seguimientos", "Control de compromisos y próximos contactos"]
+            };
+
+            if (titulos[id]) {
+                if ($("page-title")) $("page-title").textContent = titulos[id][0];
+                if ($("page-subtitle")) $("page-subtitle").textContent = titulos[id][1];
+            }
+
         });
 
-    }
+    });
 
+
+    /* =========================
+       ABRIR MODALES
+    ========================= */
 
     function abrirModal(id) {
-
-        const modal = document.getElementById(id);
-
-        if (!modal) {
-            return;
-        }
-
-        modal.classList.add("active");
-
+        const modal = $(id);
+        if (modal) modal.classList.add("active");
     }
-
 
     function cerrarModal(id) {
-
-        const modal = document.getElementById(id);
-
-        if (!modal) {
-            return;
-        }
-
-        modal.classList.remove("active");
-
+        const modal = $(id);
+        if (modal) modal.classList.remove("active");
     }
 
 
-    /* =========================================================
+    /* =========================
+       BOTONES PRINCIPALES
+    ========================= */
+
+    if ($("btnAgregarEstudiante")) {
+        $("btnAgregarEstudiante").addEventListener("click", function () {
+            nuevoEstudiante();
+        });
+    }
+
+    if ($("btnQuickStudent")) {
+        $("btnQuickStudent").addEventListener("click", function () {
+            nuevoEstudiante();
+        });
+    }
+
+    if ($("btnAgregarAtencion")) {
+        $("btnAgregarAtencion").addEventListener("click", function () {
+            nuevaAtencion();
+        });
+    }
+
+    if ($("btnNuevaAtencion")) {
+        $("btnNuevaAtencion").addEventListener("click", function () {
+            nuevaAtencion();
+        });
+    }
+
+    if ($("btnQuickAttention")) {
+        $("btnQuickAttention").addEventListener("click", function () {
+            nuevaAtencion();
+        });
+    }
+
+    if ($("btnQuickFollow")) {
+        $("btnQuickFollow").addEventListener("click", function () {
+            document.querySelector('[data-section="seguimientos"]')?.click();
+        });
+    }
+
+    if ($("btnVerAtenciones")) {
+        $("btnVerAtenciones").addEventListener("click", function () {
+            document.querySelector('[data-section="atenciones"]')?.click();
+        });
+    }
+
+    if ($("btnVerSeguimientos")) {
+        $("btnVerSeguimientos").addEventListener("click", function () {
+            document.querySelector('[data-section="seguimientos"]')?.click();
+        });
+    }
+
+
+    /* =========================
+       CERRAR MODALES
+    ========================= */
+
+    document.querySelectorAll("[data-close]").forEach(function (boton) {
+
+        boton.addEventListener("click", function () {
+            cerrarModal(boton.getAttribute("data-close"));
+        });
+
+    });
+
+    document.querySelectorAll(".modal").forEach(function (modal) {
+
+        modal.addEventListener("click", function (e) {
+
+            if (e.target === modal) {
+                cerrarModal(modal.id);
+            }
+
+        });
+
+    });
+
+
+    /* =========================
        ESTUDIANTES
-    ========================================================= */
+    ========================= */
 
-    function abrirModalEstudiante(estudiante = null) {
+    function limpiarEstudiante() {
 
-        const form = document.getElementById("form-estudiante");
-
-        if (!form) {
-            return;
+        if ($("form-estudiante")) {
+            $("form-estudiante").reset();
         }
 
-
-        form.reset();
-
-
-        const id = document.getElementById("id-estudiante");
-
-        const nombre = document.getElementById("nombre-estudiante");
-
-        const curso = document.getElementById("curso-estudiante");
-
-        const edad = document.getElementById("edad-estudiante");
-
-        const observacion =
-            document.getElementById("observacion-estudiante");
-
-
-        const titulo =
-            document.getElementById("titulo-modal-estudiante");
-
-
-        if (estudiante) {
-
-            id.value = estudiante.id;
-
-            nombre.value = estudiante.nombre || "";
-
-            curso.value = estudiante.curso || "";
-
-            edad.value = estudiante.edad || "";
-
-            observacion.value =
-                estudiante.observacion || "";
-
-            titulo.textContent = "Editar estudiante";
-
-        } else {
-
-            id.value = "";
-
-            titulo.textContent = "Nuevo estudiante";
-
+        if ($("id-estudiante")) {
+            $("id-estudiante").value = "";
         }
 
+        if ($("titulo-modal-estudiante")) {
+            $("titulo-modal-estudiante").textContent = "Nuevo estudiante";
+        }
+
+    }
+
+    function nuevoEstudiante() {
+
+        limpiarEstudiante();
 
         abrirModal("modal-estudiante");
 
-
         setTimeout(function () {
-
-            nombre.focus();
-
+            if ($("nombre-estudiante")) {
+                $("nombre-estudiante").focus();
+            }
         }, 100);
 
     }
 
 
-    function guardarEstudiante(evento) {
+    $("form-estudiante")?.addEventListener("submit", function (e) {
 
-        evento.preventDefault();
+        e.preventDefault();
 
-
-        const id =
-            document.getElementById("id-estudiante").value;
-
-
-        const nombre =
-            document.getElementById("nombre-estudiante").value.trim();
-
-
-        const curso =
-            document.getElementById("curso-estudiante").value.trim();
-
-
-        const edad =
-            document.getElementById("edad-estudiante").value;
-
-
-        const observacion =
-            document.getElementById("observacion-estudiante").value.trim();
-
+        const nombre = $("nombre-estudiante").value.trim();
+        const curso = $("curso-estudiante").value.trim();
+        const edad = $("edad-estudiante").value.trim();
+        const observacion = $("observacion-estudiante").value.trim();
+        const id = $("id-estudiante").value;
 
         if (!nombre || !curso) {
-
-            mostrarToast(
-                "Completa el nombre y el curso."
-            );
-
+            mostrarToast("Completa nombre y curso.");
             return;
-
         }
-
 
         if (id) {
 
-            const indice =
-                estudiantes.findIndex(function (e) {
+            const estudiante = estudiantes.find(x => x.id === id);
 
-                    return e.id === id;
-
-                });
-
-
-            if (indice !== -1) {
-
-                estudiantes[indice] = {
-
-                    id: id,
-
-                    nombre: nombre,
-
-                    curso: curso,
-
-                    edad: edad,
-
-                    observacion: observacion
-
-                };
-
+            if (estudiante) {
+                estudiante.nombre = nombre;
+                estudiante.curso = curso;
+                estudiante.edad = edad;
+                estudiante.observacion = observacion;
             }
+
+            mostrarToast("Estudiante actualizado.");
 
         } else {
 
             estudiantes.push({
-
-                id:
-                    Date.now().toString(),
-
-                nombre: nombre,
-
-                curso: curso,
-
-                edad: edad,
-
-                observacion: observacion
-
+                id: Date.now().toString(),
+                nombre,
+                curso,
+                edad,
+                observacion
             });
 
+            mostrarToast("Estudiante registrado.");
         }
 
-
-        guardarDatos();
-
+        guardar();
         cerrarModal("modal-estudiante");
+        renderEstudiantes();
+        actualizarDashboard();
 
-        actualizarTodo();
-
-        mostrarSeccion("estudiantes");
-
-        mostrarToast(
-            id
-                ? "Estudiante actualizado."
-                : "Estudiante registrado."
-        );
-
-    }
+    });
 
 
     function renderEstudiantes(filtro = "") {
 
-        const contenedor =
-            document.getElementById("lista-estudiantes");
+        const lista = $("lista-estudiantes");
 
+        if (!lista) return;
 
-        if (!contenedor) {
-            return;
+        const texto = filtro.toLowerCase();
+
+        const filtrados = estudiantes.filter(function (e) {
+            return e.nombre.toLowerCase().includes(texto);
+        });
+
+        if ($("cantidad-estudiantes")) {
+            $("cantidad-estudiantes").textContent =
+                filtrados.length + " estudiante" +
+                (filtrados.length === 1 ? "" : "s");
         }
 
+        if (!filtrados.length) {
 
-        const texto =
-            String(filtro).toLowerCase().trim();
-
-
-        const lista =
-            estudiantes.filter(function (estudiante) {
-
-                return estudiante.nombre
-                    .toLowerCase()
-                    .includes(texto);
-
-            });
-
-
-        const cantidad =
-            document.getElementById("cantidad-estudiantes");
-
-
-        if (cantidad) {
-
-            cantidad.textContent =
-                lista.length +
-                (
-                    lista.length === 1
-                        ? " estudiante"
-                        : " estudiantes"
-                );
-
-        }
-
-
-        if (!lista.length) {
-
-            contenedor.innerHTML = `
-
+            lista.innerHTML = `
                 <div class="empty-state">
-
                     <strong>No hay estudiantes registrados</strong>
-
-                    <p>
-                        Agrega el primer estudiante para comenzar.
-                    </p>
-
+                    <p>Agrega un estudiante para comenzar.</p>
                 </div>
-
             `;
 
             return;
-
         }
 
+        lista.innerHTML = filtrados.map(function (e) {
 
-        contenedor.innerHTML =
-            lista.map(function (estudiante) {
+            return `
+                <article class="student-card">
 
-                return `
+                    <div class="student-top">
 
-                    <article class="student-card">
+                        <div>
+                            <h3 class="student-name">
+                                ${escapar(e.nombre)}
+                            </h3>
 
-                        <div class="student-top">
-
-                            <div>
-
-                                <h3 class="student-name">
-                                    ${escapar(estudiante.nombre)}
-                                </h3>
-
-                                <span class="student-course">
-                                    ${escapar(estudiante.curso)}
-                                </span>
-
+                            <div class="student-course">
+                                ${escapar(e.curso)}
                             </div>
-
                         </div>
 
-                        <div class="student-meta">
+                    </div>
 
-                            ${
-                                estudiante.edad
-                                    ? "Edad: " +
-                                      escapar(String(estudiante.edad))
-                                    : "Edad no registrada"
-                            }
+                    <div class="student-meta">
+                        <span>
+                            ${e.edad ? "Edad: " + escapar(e.edad) : "Edad no registrada"}
+                        </span>
+                    </div>
 
-                        </div>
+                    <div class="card-actions">
 
-                        <div class="card-actions">
+                        <button
+                            type="button"
+                            class="btn btn-secondary editar-estudiante"
+                            data-id="${e.id}">
+                            Editar
+                        </button>
 
-                            <button
-                                class="btn btn-secondary btn-editar-estudiante"
-                                data-id="${estudiante.id}"
-                                type="button"
-                            >
-                                Editar
-                            </button>
+                        <button
+                            type="button"
+                            class="btn btn-secondary ver-estudiante"
+                            data-id="${e.id}">
+                            Ver ficha
+                        </button>
 
-                            <button
-                                class="btn btn-secondary btn-ver-estudiante"
-                                data-id="${estudiante.id}"
-                                type="button"
-                            >
-                                Ver ficha
-                            </button>
+                        <button
+                            type="button"
+                            class="btn btn-secondary eliminar-estudiante"
+                            data-id="${e.id}">
+                            Eliminar
+                        </button>
 
-                            <button
-                                class="btn btn-danger btn-eliminar-estudiante"
-                                data-id="${estudiante.id}"
-                                type="button"
-                            >
-                                Eliminar
-                            </button>
+                    </div>
 
-                        </div>
+                </article>
+            `;
 
-                    </article>
-
-                `;
-
-            }).join("");
+        }).join("");
 
     }
 
 
-    /* =========================================================
-       ACCIONES DE ESTUDIANTES
-    ========================================================= */
+    document.addEventListener("click", function (e) {
 
-    document.addEventListener("click", function (evento) {
-
-        const editar =
-            evento.target.closest(".btn-editar-estudiante");
-
+        const editar = e.target.closest(".editar-estudiante");
 
         if (editar) {
 
-            const estudiante =
-                estudiantes.find(function (e) {
+            const estudiante = estudiantes.find(
+                x => x.id === editar.dataset.id
+            );
 
-                    return e.id === editar.dataset.id;
+            if (!estudiante) return;
 
-                });
+            $("id-estudiante").value = estudiante.id;
+            $("nombre-estudiante").value = estudiante.nombre;
+            $("curso-estudiante").value = estudiante.curso;
+            $("edad-estudiante").value = estudiante.edad || "";
+            $("observacion-estudiante").value =
+                estudiante.observacion || "";
 
+            $("titulo-modal-estudiante").textContent =
+                "Editar estudiante";
 
-            if (estudiante) {
-
-                abrirModalEstudiante(estudiante);
-
-            }
+            abrirModal("modal-estudiante");
 
             return;
-
         }
 
 
-        const eliminar =
-            evento.target.closest(".btn-eliminar-estudiante");
-
+        const eliminar = e.target.closest(".eliminar-estudiante");
 
         if (eliminar) {
 
-            eliminarEstudiante(
-                eliminar.dataset.id
+            if (!confirm("¿Eliminar este estudiante?")) return;
+
+            estudiantes = estudiantes.filter(
+                x => x.id !== eliminar.dataset.id
             );
 
-            return;
+            guardar();
+            renderEstudiantes();
+            actualizarDashboard();
 
+            mostrarToast("Estudiante eliminado.");
+
+            return;
         }
 
 
-        const ver =
-            evento.target.closest(".btn-ver-estudiante");
-
+        const ver = e.target.closest(".ver-estudiante");
 
         if (ver) {
 
-            const estudiante =
-                estudiantes.find(function (e) {
+            const estudiante = estudiantes.find(
+                x => x.id === ver.dataset.id
+            );
 
-                    return e.id === ver.dataset.id;
+            if (!estudiante) return;
 
-                });
+            if ($("perfil-nombre")) {
+                $("perfil-nombre").textContent =
+                    estudiante.nombre;
+            }
 
+            if ($("contenido-perfil")) {
 
-            if (estudiante) {
+                const total = atenciones.filter(
+                    x => x.estudianteId === estudiante.id
+                ).length;
 
-                abrirPerfil(estudiante);
+                $("contenido-perfil").innerHTML = `
+                    <div style="padding:22px">
+
+                        <p>
+                            <strong>Curso:</strong>
+                            ${escapar(estudiante.curso)}
+                        </p>
+
+                        <p style="margin-top:10px">
+                            <strong>Edad:</strong>
+                            ${escapar(estudiante.edad || "No registrada")}
+                        </p>
+
+                        <p style="margin-top:10px">
+                            <strong>Observaciones:</strong>
+                            ${escapar(estudiante.observacion || "Sin observaciones")}
+                        </p>
+
+                        <p style="margin-top:10px">
+                            <strong>Atenciones:</strong>
+                            ${total}
+                        </p>
+
+                    </div>
+                `;
 
             }
+
+            abrirModal("modal-perfil");
 
         }
 
     });
 
 
-    function eliminarEstudiante(id) {
+    /* =========================
+       BUSCAR ESTUDIANTE
+    ========================= */
 
-        const estudiante =
-            estudiantes.find(function (e) {
-
-                return e.id === id;
-
-            });
-
-
-        if (!estudiante) {
-            return;
-        }
+    $("buscar-estudiante")?.addEventListener("input", function () {
+        renderEstudiantes(this.value);
+    });
 
 
-        const confirmar =
-            confirm(
-                "¿Deseas eliminar a " +
-                estudiante.nombre +
-                "?"
-            );
-
-
-        if (!confirmar) {
-            return;
-        }
-
-
-        estudiantes =
-            estudiantes.filter(function (e) {
-
-                return e.id !== id;
-
-            });
-
-
-        atenciones =
-            atenciones.filter(function (a) {
-
-                return a.estudianteId !== id;
-
-            });
-
-
-        guardarDatos();
-
-        actualizarTodo();
-
-        mostrarToast(
-            "Estudiante eliminado."
-        );
-
-    }
-
-
-    /* =========================================================
-       PERFIL
-    ========================================================= */
-
-    function abrirPerfil(estudiante) {
-
-        const titulo =
-            document.getElementById("perfil-nombre");
-
-
-        const contenido =
-            document.getElementById("contenido-perfil");
-
-
-        if (!titulo || !contenido) {
-            return;
-        }
-
-
-        titulo.textContent =
-            estudiante.nombre;
-
-
-        const susAtenciones =
-            atenciones.filter(function (a) {
-
-                return a.estudianteId === estudiante.id;
-
-            });
-
-
-        contenido.innerHTML = `
-
-            <div style="padding:22px">
-
-                <div class="panel" style="padding:18px;margin-bottom:16px">
-
-                    <strong>Información del estudiante</strong>
-
-                    <p style="margin-top:10px">
-                        Curso:
-                        ${escapar(estudiante.curso)}
-                    </p>
-
-                    <p style="margin-top:8px">
-                        ${
-                            estudiante.edad
-                                ? "Edad: " +
-                                  escapar(String(estudiante.edad))
-                                : "Edad no registrada"
-                        }
-                    </p>
-
-                    <p style="margin-top:10px">
-                        ${escapar(
-                            estudiante.observacion ||
-                            "Sin observación general."
-                        )}
-                    </p>
-
-                </div>
-
-
-                <div class="panel" style="padding:18px">
-
-                    <strong>Atenciones</strong>
-
-                    <p style="margin-top:8px">
-
-                        ${susAtenciones.length}
-                        ${
-                            susAtenciones.length === 1
-                                ? " atención registrada."
-                                : " atenciones registradas."
-                        }
-
-                    </p>
-
-                </div>
-
-            </div>
-
-        `;
-
-
-        abrirModal("modal-perfil");
-
-    }
-
-
-    /* =========================================================
+    /* =========================
        ATENCIONES
-    ========================================================= */
+    ========================= */
 
-    function abrirModalAtencion(atencion = null) {
+    function nuevaAtencion() {
 
         if (!estudiantes.length) {
 
-            mostrarToast(
-                "Primero registra un estudiante."
-            );
+            mostrarToast("Primero registra un estudiante.");
 
-            mostrarSeccion("estudiantes");
+            document.querySelector(
+                '[data-section="estudiantes"]'
+            )?.click();
 
-            return;
-
-        }
-
-
-        const form =
-            document.getElementById("form-atencion");
-
-
-        if (!form) {
             return;
         }
 
+        $("form-atencion")?.reset();
 
-        form.reset();
+        $("id-atencion").value = "";
 
+        $("fecha-atencion").value = fechaHoy();
 
-        document.getElementById("id-atencion").value =
-            atencion ? atencion.id : "";
+        $("titulo-modal-atencion").textContent =
+            "Nueva atención";
 
-
-        document.getElementById("titulo-modal-atencion").textContent =
-            atencion
-                ? "Editar atención"
-                : "Nueva atención";
-
-
-        const select =
-            document.getElementById("atencion-estudiante");
-
+        const select = $("atencion-estudiante");
 
         select.innerHTML =
             '<option value="">Selecciona un estudiante</option>';
 
+        estudiantes.forEach(function (e) {
 
-        estudiantes.forEach(function (estudiante) {
+            const option = document.createElement("option");
 
-            const option =
-                document.createElement("option");
-
-
-            option.value =
-                estudiante.id;
-
+            option.value = e.id;
 
             option.textContent =
-                estudiante.nombre +
-                " — " +
-                estudiante.curso;
-
+                e.nombre + " — " + e.curso;
 
             select.appendChild(option);
 
         });
-
-
-        document.getElementById("fecha-atencion").value =
-            atencion
-                ? atencion.fecha
-                : fechaActual();
-
-
-        if (atencion) {
-
-            select.value =
-                atencion.estudianteId;
-
-            document.getElementById("motivo-atencion").value =
-                atencion.motivo || "";
-
-            document.getElementById("detalle-atencion").value =
-                atencion.detalle || "";
-
-            document.getElementById("observaciones-atencion").value =
-                atencion.observaciones || "";
-
-            document.getElementById("acuerdos-atencion").value =
-                atencion.acuerdos || "";
-
-            document.getElementById("seguimiento-atencion").value =
-                atencion.seguimiento || "";
-
-        }
-
 
         abrirModal("modal-atencion");
 
     }
 
 
-    function guardarAtencion(evento) {
+    $("form-atencion")?.addEventListener("submit", function (e) {
 
-        evento.preventDefault();
+        e.preventDefault();
 
-
-        const estudianteId =
-            document.getElementById("atencion-estudiante").value;
-
-
-        const fecha =
-            document.getElementById("fecha-atencion").value;
-
-
-        const motivo =
-            document.getElementById("motivo-atencion").value.trim();
-
-
-        const detalle =
-            document.getElementById("detalle-atencion").value.trim();
-
+        const estudianteId = $("atencion-estudiante").value;
+        const fecha = $("fecha-atencion").value;
+        const motivo = $("motivo-atencion").value.trim();
+        const detalle = $("detalle-atencion").value.trim();
 
         if (!estudianteId || !fecha || !motivo || !detalle) {
 
-            mostrarToast(
-                "Completa los campos obligatorios."
-            );
+            mostrarToast("Completa los campos obligatorios.");
 
             return;
-
         }
-
-
-        const id =
-            document.getElementById("id-atencion").value;
-
 
         const datos = {
 
             id:
-                id ||
+                $("id-atencion").value ||
                 Date.now().toString(),
 
-            estudianteId:
-                estudianteId,
-
-            fecha:
-                fecha,
-
-            motivo:
-                motivo,
-
-            detalle:
-                detalle,
+            estudianteId,
+            fecha,
+            motivo,
+            detalle,
 
             observaciones:
-                document.getElementById(
-                    "observaciones-atencion"
-                ).value.trim(),
+                $("observaciones-atencion").value.trim(),
 
             acuerdos:
-                document.getElementById(
-                    "acuerdos-atencion"
-                ).value.trim(),
+                $("acuerdos-atencion").value.trim(),
 
             seguimiento:
-                document.getElementById(
-                    "seguimiento-atencion"
-                ).value
+                $("seguimiento-atencion").value
 
         };
 
+        const indice = atenciones.findIndex(
+            x => x.id === datos.id
+        );
 
-        if (id) {
+        if (indice >= 0) {
 
-            const indice =
-                atenciones.findIndex(function (a) {
+            atenciones[indice] = datos;
 
-                    return a.id === id;
-
-                });
-
-
-            if (indice !== -1) {
-
-                atenciones[indice] =
-                    datos;
-
-            }
+            mostrarToast("Atención actualizada.");
 
         } else {
 
             atenciones.push(datos);
 
+            mostrarToast("Atención registrada.");
+
         }
 
-
-        guardarDatos();
+        guardar();
 
         cerrarModal("modal-atencion");
 
-        actualizarTodo();
+        renderAtenciones();
+        renderSeguimientos();
+        actualizarDashboard();
 
-        mostrarSeccion("atenciones");
-
-        mostrarToast(
-            id
-                ? "Atención actualizada."
-                : "Atención registrada."
-        );
-
-    }
+    });
 
 
     function renderAtenciones() {
 
-        const contenedor =
-            document.getElementById("lista-atenciones");
+        const lista = $("lista-atenciones");
 
-
-        if (!contenedor) {
-            return;
-        }
-
+        if (!lista) return;
 
         if (!atenciones.length) {
 
-            contenedor.innerHTML = `
-
+            lista.innerHTML = `
                 <div class="empty-state">
-
                     <strong>No hay atenciones registradas</strong>
-
-                    <p>
-                        Registra una atención para verla aquí.
-                    </p>
-
+                    <p>Registra una atención para comenzar.</p>
                 </div>
-
             `;
 
             return;
-
         }
 
-
-        const lista =
-            [...atenciones].sort(function (a, b) {
-
-                return b.fecha.localeCompare(a.fecha);
-
-            });
-
-
-        contenedor.innerHTML =
-            lista.map(function (atencion) {
+        lista.innerHTML = atenciones
+            .slice()
+            .reverse()
+            .map(function (a) {
 
                 const estudiante =
-                    estudiantes.find(function (e) {
-
-                        return e.id === atencion.estudianteId;
-
-                    });
-
-
-                const nombre =
-                    estudiante
-                        ? estudiante.nombre
-                        : "Estudiante eliminado";
-
+                    estudiantes.find(
+                        x => x.id === a.estudianteId
+                    );
 
                 return `
-
                     <article class="attention-card">
 
-                        <div>
+                        <div class="attention-top">
 
-                            <strong>
-                                ${escapar(nombre)}
-                            </strong>
+                            <div class="attention-name">
+                                ${escapar(
+                                    estudiante
+                                        ? estudiante.nombre
+                                        : "Estudiante"
+                                )}
+                            </div>
 
-                            <span>
-                                ${formatearFecha(atencion.fecha)}
-                            </span>
+                            <div class="attention-date">
+                                ${a.fecha}
+                            </div>
 
                         </div>
 
-                        <h3>
-                            ${escapar(atencion.motivo)}
-                        </h3>
+                        <div class="attention-motive">
+                            ${escapar(a.motivo)}
+                        </div>
 
-                        <p>
-                            ${escapar(atencion.detalle)}
-                        </p>
+                        <div class="attention-detail">
+                            ${escapar(a.detalle)}
+                        </div>
 
                         <div class="card-actions">
 
                             <button
                                 type="button"
-                                class="btn btn-secondary btn-editar-atencion"
-                                data-id="${atencion.id}"
-                            >
+                                class="btn btn-secondary editar-atencion"
+                                data-id="${a.id}">
                                 Editar
                             </button>
 
                             <button
                                 type="button"
-                                class="btn btn-danger btn-eliminar-atencion"
-                                data-id="${atencion.id}"
-                            >
+                                class="btn btn-secondary eliminar-atencion"
+                                data-id="${a.id}">
                                 Eliminar
                             </button>
 
                         </div>
 
                     </article>
-
                 `;
 
             }).join("");
@@ -1240,452 +664,130 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    /* =========================================================
-       ACCIONES DE ATENCIONES
-    ========================================================= */
+    document.addEventListener("click", function (e) {
 
-    document.addEventListener("click", function (evento) {
-
-        const editar =
-            evento.target.closest(".btn-editar-atencion");
-
+        const editar = e.target.closest(".editar-atencion");
 
         if (editar) {
 
-            const atencion =
-                atenciones.find(function (a) {
+            const a = atenciones.find(
+                x => x.id === editar.dataset.id
+            );
 
-                    return a.id === editar.dataset.id;
+            if (!a) return;
 
-                });
+            nuevaAtencion();
 
+            $("id-atencion").value = a.id;
+            $("atencion-estudiante").value = a.estudianteId;
+            $("fecha-atencion").value = a.fecha;
+            $("motivo-atencion").value = a.motivo;
+            $("detalle-atencion").value = a.detalle;
+            $("observaciones-atencion").value =
+                a.observaciones || "";
+            $("acuerdos-atencion").value =
+                a.acuerdos || "";
+            $("seguimiento-atencion").value =
+                a.seguimiento || "";
 
-            if (atencion) {
-
-                abrirModalAtencion(atencion);
-
-            }
+            $("titulo-modal-atencion").textContent =
+                "Editar atención";
 
             return;
-
         }
 
 
-        const eliminar =
-            evento.target.closest(".btn-eliminar-atencion");
-
+        const eliminar = e.target.closest(".eliminar-atencion");
 
         if (eliminar) {
 
-            const confirmar =
-                confirm(
-                    "¿Deseas eliminar esta atención?"
-                );
+            if (!confirm("¿Eliminar esta atención?")) return;
 
-
-            if (!confirmar) {
-                return;
-            }
-
-
-            atenciones =
-                atenciones.filter(function (a) {
-
-                    return a.id !== eliminar.dataset.id;
-
-                });
-
-
-            guardarDatos();
-
-            actualizarTodo();
-
-            mostrarToast(
-                "Atención eliminada."
+            atenciones = atenciones.filter(
+                x => x.id !== eliminar.dataset.id
             );
+
+            guardar();
+            renderAtenciones();
+            renderSeguimientos();
+            actualizarDashboard();
+
+            mostrarToast("Atención eliminada.");
 
         }
 
     });
 
 
-    /* =========================================================
+    /* =========================
        SEGUIMIENTOS
-    ========================================================= */
+    ========================= */
 
-    function configurarSeguimientos() {
+    document.querySelectorAll(".follow-tab").forEach(function (tab) {
 
-        document.addEventListener("click", function (evento) {
-
-            const boton =
-                evento.target.closest(".follow-tab");
-
-
-            if (!boton) {
-                return;
-            }
-
-
-            filtroSeguimientos =
-                boton.getAttribute("data-filter") ||
-                "todos";
-
+        tab.addEventListener("click", function () {
 
             document.querySelectorAll(".follow-tab")
-                .forEach(function (tab) {
+                .forEach(x => x.classList.remove("active"));
 
-                    tab.classList.remove("active");
+            tab.classList.add("active");
 
-                });
-
-
-            boton.classList.add("active");
-
-            renderSeguimientos();
+            renderSeguimientos(
+                tab.getAttribute("data-filter")
+            );
 
         });
 
-    }
+    });
 
 
-    function renderSeguimientos() {
+    function renderSeguimientos(filtro = "todos") {
 
-        const contenedor =
-            document.getElementById("lista-seguimientos");
+        const lista = $("lista-seguimientos");
 
+        if (!lista) return;
 
-        if (!contenedor) {
-            return;
+        let datos = atenciones.filter(
+            x => x.seguimiento
+        );
+
+        const hoy = fechaHoy();
+
+        if (filtro === "pendientes") {
+            datos = datos.filter(
+                x => x.seguimiento >= hoy
+            );
         }
 
-
-        const hoy =
-            fechaActual();
-
-
-        let lista =
-            atenciones.filter(function (atencion) {
-
-                return atencion.seguimiento;
-
-            });
-
-
-        if (filtroSeguimientos === "pendientes") {
-
-            lista =
-                lista.filter(function (a) {
-
-                    return a.seguimiento >= hoy;
-
-                });
-
+        if (filtro === "vencidos") {
+            datos = datos.filter(
+                x => x.seguimiento < hoy
+            );
         }
 
+        if (!datos.length) {
 
-        if (filtroSeguimientos === "vencidos") {
-
-            lista =
-                lista.filter(function (a) {
-
-                    return a.seguimiento < hoy;
-
-                });
-
-        }
-
-
-        if (filtroSeguimientos === "realizados") {
-
-            lista = [];
-
-        }
-
-
-        if (!lista.length) {
-
-            contenedor.innerHTML = `
-
+            lista.innerHTML = `
                 <div class="empty-state">
-
                     <strong>No hay seguimientos</strong>
-
-                    <p>
-                        No existen registros para este filtro.
-                    </p>
-
+                    <p>No existen registros para este filtro.</p>
                 </div>
-
             `;
 
             return;
-
         }
 
+        lista.innerHTML = datos.map(function (a) {
 
-        contenedor.innerHTML =
-            lista.map(function (atencion) {
-
-                const estudiante =
-                    estudiantes.find(function (e) {
-
-                        return e.id === atencion.estudianteId;
-
-                    });
-
-
-                return `
-
-                    <article class="follow-card">
-
-                        <div>
-
-                            <strong>
-                                ${escapar(
-                                    estudiante
-                                        ? estudiante.nombre
-                                        : "Estudiante"
-                                )}
-                            </strong>
-
-                            <span>
-                                ${formatearFecha(
-                                    atencion.seguimiento
-                                )}
-                            </span>
-
-                        </div>
-
-                        <p>
-                            ${escapar(atencion.motivo)}
-                        </p>
-
-                    </article>
-
-                `;
-
-            }).join("");
-
-    }
-
-
-    /* =========================================================
-       FORMULARIOS
-    ========================================================= */
-
-    function configurarFormularios() {
-
-        const formEstudiante =
-            document.getElementById(
-                "form-estudiante"
-            );
-
-
-        if (formEstudiante) {
-
-            formEstudiante.addEventListener(
-                "submit",
-                guardarEstudiante
-            );
-
-        }
-
-
-        const formAtencion =
-            document.getElementById(
-                "form-atencion"
-            );
-
-
-        if (formAtencion) {
-
-            formAtencion.addEventListener(
-                "submit",
-                guardarAtencion
-            );
-
-        }
-
-    }
-
-
-    /* =========================================================
-       BUSCADOR
-    ========================================================= */
-
-    function configurarBusqueda() {
-
-        const buscador =
-            document.getElementById(
-                "buscar-estudiante"
-            );
-
-
-        if (!buscador) {
-            return;
-        }
-
-
-        buscador.addEventListener(
-            "input",
-            function () {
-
-                renderEstudiantes(
-                    buscador.value
+            const estudiante =
+                estudiantes.find(
+                    x => x.id === a.estudianteId
                 );
 
-            }
-        );
+            return `
+                <article class="follow-card">
 
-    }
-
-
-    /* =========================================================
-       ACTUALIZAR TODO
-    ========================================================= */
-
-    function actualizarTodo() {
-
-        const totalEstudiantes =
-            document.getElementById(
-                "total-estudiantes"
-            );
-
-
-        const totalAtenciones =
-            document.getElementById(
-                "total-atenciones"
-            );
-
-
-        const totalSeguimientos =
-            document.getElementById(
-                "total-seguimientos"
-            );
-
-
-        const totalHoy =
-            document.getElementById(
-                "total-hoy"
-            );
-
-
-        if (totalEstudiantes) {
-
-            totalEstudiantes.textContent =
-                estudiantes.length;
-
-        }
-
-
-        if (totalAtenciones) {
-
-            totalAtenciones.textContent =
-                atenciones.length;
-
-        }
-
-
-        const seguimientos =
-            atenciones.filter(function (a) {
-
-                return a.seguimiento;
-
-            });
-
-
-        if (totalSeguimientos) {
-
-            totalSeguimientos.textContent =
-                seguimientos.length;
-
-        }
-
-
-        const hoy =
-            fechaActual();
-
-
-        const hoyCantidad =
-            atenciones.filter(function (a) {
-
-                return a.fecha === hoy;
-
-            }).length;
-
-
-        if (totalHoy) {
-
-            totalHoy.textContent =
-                hoyCantidad;
-
-        }
-
-
-        renderEstudiantes();
-
-        renderAtenciones();
-
-        renderSeguimientos();
-
-        renderUltimasAtenciones();
-
-        renderProximosSeguimientos();
-
-    }
-
-
-    /* =========================================================
-       DASHBOARD
-    ========================================================= */
-
-    function renderUltimasAtenciones() {
-
-        const contenedor =
-            document.getElementById(
-                "ultimas-atenciones"
-            );
-
-
-        if (!contenedor) {
-            return;
-        }
-
-
-        const lista =
-            [...atenciones]
-                .sort(function (a, b) {
-
-                    return b.fecha.localeCompare(a.fecha);
-
-                })
-                .slice(0, 5);
-
-
-        if (!lista.length) {
-
-            contenedor.innerHTML =
-                '<div class="empty-state">No hay atenciones todavía.</div>';
-
-            return;
-
-        }
-
-
-        contenedor.innerHTML =
-            lista.map(function (a) {
-
-                const estudiante =
-                    estudiantes.find(function (e) {
-
-                        return e.id === a.estudianteId;
-
-                    });
-
-
-                return `
-
-                    <div class="list-item">
+                    <div class="follow-main">
 
                         <strong>
                             ${escapar(
@@ -1701,150 +803,57 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     </div>
 
-                `;
+                    <span class="follow-status pending">
+                        ${a.seguimiento}
+                    </span>
 
-            }).join("");
+                </article>
+            `;
 
-    }
-
-
-    function renderProximosSeguimientos() {
-
-        const contenedor =
-            document.getElementById(
-                "proximos-seguimientos"
-            );
-
-
-        if (!contenedor) {
-            return;
-        }
-
-
-        const hoy =
-            fechaActual();
-
-
-        const lista =
-            atenciones
-                .filter(function (a) {
-
-                    return (
-                        a.seguimiento &&
-                        a.seguimiento >= hoy
-                    );
-
-                })
-                .sort(function (a, b) {
-
-                    return a.seguimiento.localeCompare(
-                        b.seguimiento
-                    );
-
-                })
-                .slice(0, 5);
-
-
-        if (!lista.length) {
-
-            contenedor.innerHTML =
-                '<div class="empty-state">No hay seguimientos próximos.</div>';
-
-            return;
-
-        }
-
-
-        contenedor.innerHTML =
-            lista.map(function (a) {
-
-                const estudiante =
-                    estudiantes.find(function (e) {
-
-                        return e.id === a.estudianteId;
-
-                    });
-
-
-                return `
-
-                    <div class="list-item">
-
-                        <strong>
-                            ${escapar(
-                                estudiante
-                                    ? estudiante.nombre
-                                    : "Estudiante"
-                            )}
-                        </strong>
-
-                        <span>
-                            ${formatearFecha(a.seguimiento)}
-                        </span>
-
-                    </div>
-
-                `;
-
-            }).join("");
+        }).join("");
 
     }
 
 
-    /* =========================================================
+    /* =========================
+       DASHBOARD
+    ========================= */
+
+    function actualizarDashboard() {
+
+        if ($("total-estudiantes")) {
+            $("total-estudiantes").textContent =
+                estudiantes.length;
+        }
+
+        if ($("total-atenciones")) {
+            $("total-atenciones").textContent =
+                atenciones.length;
+        }
+
+        if ($("total-seguimientos")) {
+            $("total-seguimientos").textContent =
+                atenciones.filter(x => x.seguimiento).length;
+        }
+
+        if ($("total-hoy")) {
+            $("total-hoy").textContent =
+                atenciones.filter(
+                    x => x.fecha === fechaHoy()
+                ).length;
+        }
+
+    }
+
+
+    /* =========================
        FECHA
-    ========================================================= */
+    ========================= */
 
-    function fechaActual() {
+    if ($("date")) {
 
-        const fecha =
-            new Date();
-
-
-        const año =
-            fecha.getFullYear();
-
-
-        const mes =
-            String(
-                fecha.getMonth() + 1
-            ).padStart(2, "0");
-
-
-        const dia =
-            String(
-                fecha.getDate()
-            ).padStart(2, "0");
-
-
-        return (
-            año +
-            "-" +
-            mes +
-            "-" +
-            dia
-        );
-
-    }
-
-
-    function actualizarFecha() {
-
-        const elemento =
-            document.getElementById("date");
-
-
-        if (!elemento) {
-            return;
-        }
-
-
-        const fecha =
-            new Date();
-
-
-        elemento.textContent =
-            fecha.toLocaleDateString(
+        $("date").textContent =
+            new Date().toLocaleDateString(
                 "es-CO",
                 {
                     weekday: "long",
@@ -1857,73 +866,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function formatearFecha(fecha) {
+    /* =========================
+       INICIO
+    ========================= */
 
-        if (!fecha) {
-            return "";
-        }
-
-
-        const partes =
-            fecha.split("-");
-
-
-        if (partes.length !== 3) {
-            return fecha;
-        }
-
-
-        return (
-            partes[2] +
-            "/" +
-            partes[1] +
-            "/" +
-            partes[0]
-        );
-
-    }
-
-
-    /* =========================================================
-       UTILIDADES
-    ========================================================= */
-
-    function escapar(texto) {
-
-        return String(texto || "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-
-    }
-
-
-    function mostrarToast(mensaje) {
-
-        const toast =
-            document.getElementById("toast");
-
-
-        if (!toast) {
-            return;
-        }
-
-
-        toast.textContent =
-            mensaje;
-
-
-        toast.classList.add("show");
-
-
-        setTimeout(function () {
-
-            toast.classList.remove("show");
-
-        }, 2500);
-
-    }
+    actualizarDashboard();
+    renderEstudiantes();
+    renderAtenciones();
+    renderSeguimientos();
 
 });
