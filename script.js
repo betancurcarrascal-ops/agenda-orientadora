@@ -1,3 +1,4 @@
+alert("SCRIPT NUEVO CARGADO");
 document.addEventListener("DOMContentLoaded", function () {
 
     /* =========================================================
