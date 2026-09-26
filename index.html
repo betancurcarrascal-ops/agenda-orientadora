@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Agenda de Orientación</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =====================================================
+         BARRA LATERAL
+         ===================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+
+            <div class="school-brand">
+
+                <div class="logo-icon">
+                    <img src="images.jpg" alt="Logo Colegio Santa María de la Antigua">
+                </div>
+
+                <div class="school-info">
+                    <div class="school-name">
+                        Santa María de la Antigua
+                    </div>
+
+                    <div class="school-subtitle">
+                        Orientación escolar
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <nav class="nav">
+
+            <div class="nav-section-title">
+                MENÚ PRINCIPAL
+            </div>
+
+            <button class="nav-item active" data-section="inicio">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M3 10.5 12 3l9 7.5"></path>
+                    <path d="M5 9.5V21h14V9.5"></path>
+                    <path d="M9 21v-7h6v7"></path>
+                </svg>
+
+                <span>Inicio</span>
+
+            </button>
+
+
+            <button class="nav-item" data-section="estudiantes">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+
+                <span>Estudiantes</span>
+
+            </button>
+
+
+            <button class="nav-item" data-section="atenciones">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7A8.38 8.38 0 0 1 4 11.5a8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                </svg>
+
+                <span>Atenciones</span>
+
+            </button>
+
+
+            <button class="nav-item" data-section="seguimientos">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 7v5l3 2"></path>
+                </svg>
+
+                <span>Seguimientos</span>
+
+            </button>
+
+
+            <button class="nav-item" data-section="notas">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <path d="M14 2v6h6"></path>
+                    <path d="M8 13h8"></path>
+                    <path d="M8 17h6"></path>
+                </svg>
+
+                <span>Notas de conversación</span>
+
+            </button>
+
+        </nav>
+
+
+        <div class="sidebar-footer">
+
+            <div class="sidebar-user">
+
+                <div class="sidebar-user-avatar">
+
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <circle cx="12" cy="8" r="4"></circle>
+                        <path d="M4 21a8 8 0 0 1 16 0"></path>
+                    </svg>
+
+                </div>
+
+                <div>
+                    <div class="sidebar-user-name">
+                        Orientación escolar
+                    </div>
+
+                    <div class="sidebar-user-role">
+                        Colegio Santa María
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         CONTENIDO PRINCIPAL
+         ===================================================== -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div>
+
+                <div class="page-title" id="page-title">
+                    Inicio
+                </div>
+
+                <div class="page-subtitle" id="page-subtitle">
+                    Panel de orientación escolar
+                </div>
+
+            </div>
+
+
+            <div class="topbar-date">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+
+                <span id="fecha-actual"></span>
+
+            </div>
+
+        </header>
+
+
+        <div class="content">
+
+            <!-- =================================================
+                 INICIO
+                 ================================================= -->
+
+            <section id="inicio" class="section active">
+
+                <div class="welcome">
+
+                    <h2>
+                        Bienvenida a tu agenda de orientación
+                    </h2>
+
+                    <p>
+                        Organiza estudiantes, atenciones, seguimientos y conversaciones.
+                    </p>
+
+                </div>
+
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+
+                            <div>
+                                <div class="stat-label">
+                                    Estudiantes
+                                </div>
+
+                                <div class="stat-number" id="total-estudiantes">
+                                    0
+                                </div>
+                            </div>
+
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+
+                            <div>
+                                <div class="stat-label">
+                                    Atenciones
+                                </div>
+
+                                <div class="stat-number" id="total-atenciones">
+                                    0
+                                </div>
+                            </div>
+
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7A8.38 8.38 0 0 1 4 11.5a8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                </svg>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+
+                            <div>
+                                <div class="stat-label">
+                                    Seguimientos
+                                </div>
+
+                                <div class="stat-number" id="total-seguimientos">
+                                    0
+                                </div>
+                            </div>
+
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <circle cx="12" cy="12" r="9"></circle>
+                                    <path d="M12 7v5l3 2"></path>
+                                </svg>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+
+                            <div>
+                                <div class="stat-label">
+                                    Notas
+                                </div>
+
+                                <div class="stat-number" id="total-notas">
+                                    0
+                                </div>
+                            </div>
+
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <path d="M14 2v6h6"></path>
+                                    <path d="M8 13h8"></path>
+                                    <path d="M8 17h6"></path>
+                                </svg>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="dashboard-grid">
+
+                    <div class="card">
+
+                        <div class="card-header">
+
+                            <div>
+                                <div class="card-title">
+                                    Acciones rápidas
+                                </div>
+
+                                <div class="card-subtitle">
+                                    Accesos frecuentes de orientación
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div class="card-body">
+
+                            <div class="quick-actions">
+
+                                <button class="btn btn-primary" id="btnQuickStudent">
+                                    Nuevo estudiante
+                                </button>
+
+                                <button class="btn btn-secondary" id="btnQuickAttention">
+                                    Nueva atención
+                                </button>
+
+                                <button class="btn btn-secondary" id="btnQuickFollow">
+                                    Nuevo seguimiento
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card">
+
+                        <div class="card-header">
+
+                            <div>
+                                <div class="card-title">
+                                    Actividad reciente
+                                </div>
+
+                                <div class="card-subtitle">
+                                    Últimos registros realizados
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <div id="actividad-reciente" class="list"></div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 ESTUDIANTES
+                 ================================================= -->
+
+            <section id="estudiantes" class="section">
+
+                <div class="section-header">
+
+                    <div>
+                        <h2 class="section-title">
+                            Estudiantes
+                        </h2>
+
+                        <p class="section-description">
+                            Registro de estudiantes atendidos por orientación.
+                        </p>
+                    </div>
+
+                    <button class="btn btn-primary" id="btnAgregarEstudiante">
+                        Nuevo estudiante
+                    </button>
+
+                </div>
+
+
+                <div class="toolbar">
+
+                    <div class="search-box">
+
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path d="m20 20-4-4"></path>
+                        </svg>
+
+                        <input
+                            type="text"
+                            id="buscar-estudiante"
+                            placeholder="Buscar estudiante..."
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div id="lista-estudiantes" class="students-grid"></div>
+
+            </section>
+
+
+            <!-- =================================================
+                 ATENCIONES
+                 ================================================= -->
+
+            <section id="atenciones" class="section">
+
+                <div class="section-header">
+
+                    <div>
+                        <h2 class="section-title">
+                            Atenciones
+                        </h2>
+
+                        <p class="section-description">
+                            Registro de las atenciones realizadas.
+                        </p>
+                    </div>
+
+                    <button class="btn btn-primary" id="btnAgregarAtencion">
+                        Nueva atención
+                    </button>
+
+                </div>
+
+
+                <div class="toolbar">
+
+                    <div class="search-box">
+
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path d="m20 20-4-4"></path>
+                        </svg>
+
+                        <input
+                            type="text"
+                            id="buscar-atencion"
+                            placeholder="Buscar atención..."
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div id="lista-atenciones"></div>
+
+            </section>
+
+
+            <!-- =================================================
+                 SEGUIMIENTOS
+                 ================================================= -->
+
+            <section id="seguimientos" class="section">
+
+                <div class="section-header">
+
+                    <div>
+                        <h2 class="section-title">
+                            Seguimientos
+                        </h2>
+
+                        <p class="section-description">
+                            Consulta y organiza los seguimientos pendientes.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="filters">
+
+                    <select id="filtro-seguimiento" class="filter-select">
+                        <option value="todos">Todos</option>
+                        <option value="pendientes">Pendientes</option>
+                        <option value="vencidos">Vencidos</option>
+                        <option value="realizados">Realizados</option>
+                    </select>
+
+                </div>
+
+
+                <div id="lista-seguimientos" class="follow-list"></div>
+
+            </section>
+
+
+            <!-- =================================================
+                 NOTAS DE CONVERSACIÓN
+                 ================================================= -->
+
+            <section id="notas" class="section">
+
+                <div class="section-header">
+
+                    <div>
+                        <h2 class="section-title">
+                            Notas de conversación
+                        </h2>
+
+                        <p class="section-description">
+                            Registra y conserva las conversaciones realizadas con los estudiantes.
+                        </p>
+                    </div>
+
+                    <button class="btn btn-primary" id="btnNuevaNota">
+                        Nueva nota
+                    </button>
+
+                </div>
+
+
+                <div class="notes-layout">
+
+                    <!-- LISTA DE NOTAS -->
+
+                    <aside class="notes-sidebar">
+
+                        <div class="notes-sidebar-header">
+
+                            <div class="notes-sidebar-title">
+                                Conversaciones
+                            </div>
+
+                            <div class="notes-sidebar-count">
+                                <span id="cantidad-notas">0</span> notas registradas
+                            </div>
+
+                        </div>
+
+
+                        <div id="lista-notas" class="notes-list">
+
+                            <div class="empty-state">
+
+                                <div class="empty-state-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <path d="M14 2v6h6"></path>
+                                    </svg>
+                                </div>
+
+                                <div class="empty-state-title">
+                                    No hay notas
+                                </div>
+
+                                <div class="empty-state-text">
+                                    Crea una nueva nota para comenzar.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </aside>
+
+
+                    <!-- EDITOR -->
+
+                    <div class="notes-editor">
+
+                        <div class="notes-editor-header">
+
+                            <div class="notes-editor-fields">
+
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        Estudiante
+                                    </label>
+
+                                    <select
+                                        id="nota-estudiante"
+                                        class="form-control"
+                                    >
+                                        <option value="">
+                                            Seleccionar estudiante
+                                        </option>
+                                    </select>
+                                </div>
+
+
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        Título
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="nota-titulo"
+                                        class="form-control"
+                                        placeholder="Título de la conversación"
+                                    >
+                                </div>
+
+
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        Fecha
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        id="nota-fecha"
+                                        class="form-control"
+                                    >
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="notes-editor-body">
+
+                            <div class="editor-toolbar">
+
+                                <button
+                                    type="button"
+                                    class="editor-button"
+                                    data-command="bold"
+                                    title="Negrita"
+                                >
+                                    B
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="editor-button"
+                                    data-command="italic"
+                                    title="Cursiva"
+                                >
+                                    I
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="editor-button"
+                                    data-command="underline"
+                                    title="Subrayado"
+                                >
+                                    U
+                                </button>
+
+
+                                <div class="editor-separator"></div>
+
+
+                                <button
+                                    type="button"
+                                    class="editor-button"
+                                    data-command="insertUnorderedList"
+                                    title="Lista"
+                                >
+                                    •
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    class="editor-button"
+                                    data-command="justifyLeft"
+                                    title="Alinear a la izquierda"
+                                >
+                                    ≡
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="editor-button"
+                                    data-command="justifyCenter"
+                                    title="Centrar"
+                                >
+                                    ≡
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="editor-button"
+                                    data-command="justifyRight"
+                                    title="Alinear a la derecha"
+                                >
+                                    ≡
+                                </button>
+
+                            </div>
+
+
+                            <div
+                                id="nota-contenido"
+                                class="note-editor"
+                                contenteditable="true"
+                            ></div>
+
+                        </div>
+
+
+                        <div class="notes-editor-footer">
+
+                            <div class="note-status" id="estado-nota">
+                                Sin cambios
+                            </div>
+
+                            <div class="word-counter">
+                                <span id="contador-palabras">0</span> palabras
+                            </div>
+
+
+                            <div class="notes-actions">
+
+                                <button
+                                    class="btn btn-danger"
+                                    id="btnEliminarNota"
+                                >
+                                    Eliminar
+                                </button>
+
+                                <button
+                                    class="btn btn-primary"
+                                    id="btnGuardarNota"
+                                >
+                                    Guardar nota
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- =========================================================
+     MODAL ESTUDIANTE
+     ========================================================= -->
+
+<div class="modal" id="modalEstudiante">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <div class="modal-title">
+                Nuevo estudiante
+            </div>
+
+            <button class="modal-close" data-close-modal="modalEstudiante">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                </svg>
+
+            </button>
+
+        </div>
+
+
+        <form id="formEstudiante">
+
+            <div class="modal-body">
+
+                <div class="form-row">
+
+                    <div class="form-group">
+
+                        <label class="form-label required">
+                            Nombre
+                        </label>
+
+                        <input
+                            type="text"
+                            id="estudiante-nombre"
+                            class="form-control"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label class="form-label required">
+                            Apellido
+                        </label>
+
+                        <input
+                            type="text"
+                            id="estudiante-apellido"
+                            class="form-control"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-row">
+
+                    <div class="form-group">
+
+                        <label class="form-label">
+                            Curso
+                        </label>
+
+                        <input
+                            type="text"
+                            id="estudiante-curso"
+                            class="form-control"
+                            placeholder="Ej. 8°A"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label class="form-label">
+                            Identificación
+                        </label>
+
+                        <input
+                            type="text"
+                            id="estudiante-identificacion"
+                            class="form-control"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Información de contacto
+                    </label>
+
+                    <input
+                        type="text"
+                        id="estudiante-contacto"
+                        class="form-control"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Observaciones
+                    </label>
+
+                    <textarea
+                        id="estudiante-observaciones"
+                        class="form-control"
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-close-modal="modalEstudiante"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    Guardar estudiante
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     MODAL ATENCIÓN
+     ========================================================= -->
+
+<div class="modal" id="modalAtencion">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <div class="modal-title">
+                Nueva atención
+            </div>
+
+            <button class="modal-close" data-close-modal="modalAtencion">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                </svg>
+
+            </button>
+
+        </div>
+
+
+        <form id="formAtencion">
+
+            <div class="modal-body">
+
+                <div class="form-group">
+
+                    <label class="form-label required">
+                        Estudiante
+                    </label>
+
+                    <select
+                        id="atencion-estudiante"
+                        class="form-control"
+                        required
+                    >
+                        <option value="">
+                            Seleccionar estudiante
+                        </option>
+                    </select>
+
+                </div>
+
+
+                <div class="form-row">
+
+                    <div class="form-group">
+
+                        <label class="form-label">
+                            Tipo de atención
+                        </label>
+
+                        <select
+                            id="atencion-tipo"
+                            class="form-control"
+                        >
+                            <option value="Orientación">
+                                Orientación
+                            </option>
+
+                            <option value="Seguimiento">
+                                Seguimiento
+                            </option>
+
+                            <option value="Convivencia">
+                                Convivencia
+                            </option>
+
+                            <option value="Académica">
+                                Académica
+                            </option>
+
+                            <option value="Familiar">
+                                Familiar
+                            </option>
+
+                            <option value="Otra">
+                                Otra
+                            </option>
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label class="form-label">
+                            Fecha
+                        </label>
+
+                        <input
+                            type="date"
+                            id="atencion-fecha"
+                            class="form-control"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Motivo
+                    </label>
+
+                    <input
+                        type="text"
+                        id="atencion-motivo"
+                        class="form-control"
+                        placeholder="Motivo de la atención"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Descripción
+                    </label>
+
+                    <textarea
+                        id="atencion-descripcion"
+                        class="form-control"
+                        placeholder="Escribe lo ocurrido durante la atención..."
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-close-modal="modalAtencion"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    Guardar atención
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     TOAST
+     ========================================================= -->
+
+<div id="toast-container" class="toast-container"></div>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
